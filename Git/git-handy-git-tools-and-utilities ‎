@@ -1,0 +1,8 @@
+Find and get rid of really big files from your git repo:
+
+https://rtyley.github.io/bfg-repo-cleaner/
+
+
+Handy tool for getting rid of stale bug/feature branches that have already been merged in to the main release/master branches:
+
+https://github.com/arc90/git-sweep
