@@ -1,0 +1,313 @@
+<h2>Overview</h2>
+By the end of this article you should be able to answer the following questions:
+
+[accordion]
+[toggle title="What is the command to check the status of the firewall's service?"]
+$ systemctl status firewalld
+[/toggle]
+[toggle title="What is the command to list all the available zones?"]
+$  firewall-cmd <span style="letter-spacing:1.5px">-</span>-get-zones
+[/toggle]
+[toggle title="What is the command to view the default zone?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-get-default-zone
+[/toggle]
+[toggle title="What is the command to view the currently active zone?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-get-active-zones
+[/toggle]
+[toggle title="What is the command to view info about the zone, 'public'?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-zone=public <span style="letter-spacing:1.5px">-</span>-list-all
+[/toggle]
+[toggle title="What is the command to add an IP address (192.168.50.0/24) restriction to the zone, 'public'. Also this needs to be a persistant restriction?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-zone=public <span style="letter-spacing:1.5px">-</span>-add-source=192.168.50.0/24 <span style="letter-spacing:1.5px">-</span>-permanent
+# then restart the firewalld service to load in the change
+$ systemctl restart firewalld
+[/toggle]
+[toggle title="What is the command to view a list of services that can be added to a zone?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-get-services
+[/toggle]
+[toggle title="What are the commands to peristantly add the http service to the 'public' zone?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-service=http <span style="letter-spacing:1.5px">-</span>-zone=public <span style="letter-spacing:1.5px">-</span>-permanent
+$ systemctl restart firewalld     # load in the new change
+[/toggle]
+[toggle title="What are the commands to persistantly add port 80/tcp to the zone public?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-port=80/tcp <span style="letter-spacing:1.5px">-</span>-permanent <span style="letter-spacing:1.5px">-</span>-zone=public
+$ systemctl restart firewalld
+[/toggle]
+[toggle title="What is the command to check that the above changes have worked?"]
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-list-all
+[/toggle]
+[toggle title="Which directory contains xml representations of each 'firewalld' service, which can use as templates to create your own templates?"]
+/usr/lib/firewalld/services/
+[/toggle]
+[toggle title="If you create your custom firewalld service xml files, then which directory do you need to store them in?"]
+/etc/firewalld/services
+[/toggle]
+[toggle title="What is the command to open up firewall gui interface?"]
+$ firewall-config
+[/toggle]
+[/accordion]
+
+<hr/>
+
+
+On your machine you are likely to have lots of service that are listening on various ports. For example sshd, httpd, vsftpd,...etc. In Linux there is a system called "Netfilter" which controls which the flow of traffic to/from these services. NetFilter is designed to only allow internet access to network based services, and on the port numbers that they require.  There are 2 systems which are available to configure Netfilter, they are "iptables" and "firewalld". Both of them can fully configure Netfilter, however firewalld is a lot more easier to use.
+
+Firewalld itself runs as a service, so to make sure it is working you need to run the following:
+
+
+<pre>$ systemctl status firewalld
+firewalld.service - firewalld - dynamic firewall daemon
+   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled)
+   Active: active (running) since Sat 2015-06-20 07:20:30 BST; 1 day 7h ago
+ Main PID: 611 (firewalld)
+   CGroup: /system.slice/firewalld.service
+           └─611 /usr/bin/python -Es /usr/sbin/firewalld --nofork --nopid
+
+Jun 20 07:20:26 localhost.localdomain systemd[1]: Starting firewalld - dynamic firewall daemon...
+Jun 20 07:20:30 localhost.localdomain systemd[1]: Started firewalld - dynamic firewall daemon.
+</pre>
+
+The main command that we use to work with firewalld is <strong>firewall-cmd</strong>. In firewalld there are number of "zones" available, you can see a list of them using the <strong>firewalld-cmd</strong> command:
+
+
+<pre>
+$  firewall-cmd <span style="letter-spacing:1.5px">-</span>-get-zones
+block dmz drop external home internal public trusted work
+</pre>
+
+Note: All the zones appear on a single line as a space separated string. In our case we have 9 zones. All your firewall rules are grouped inside a zone. Each zone specifies an ip address range whitelist. Therefore we want to send+data via ip address ranges, then we need to have at least 2 zones active.
+
+To see what is our default zone, we do:
+
+<pre>
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-get-default-zone
+public
+</pre>
+
+This is the zone, our machine defaults to on boot up. However the zone that we are currently in can be different. To see what zones are currently active, we do:
+
+<pre>
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-get-active-zones
+public
+  interfaces: enp0s3 enp0s8
+</pre>
+
+In our case, we only have one zone that is currently active zone...which is the default zone.
+
+It also shows here that only the "enp0s3" and "enp0s8" interfaces are allowed to send+receive network traffic data in this zone.
+
+Now to get all the info for a given zone we do:
+
+<pre>$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-zone=public <span style="letter-spacing:1.5px">-</span>-list-all
+public (default, active)
+  interfaces: enp0s3
+  sources:
+  services: dhcpv6-client ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+</pre>
+
+The --list-all option gives an overview of the entire zone, i.e. which interfaces are allowed to operate in this zone, what services are allowed to send+receive data in this zone. The cool thing here is that you don't need to specify what ports needs to be opened. Since the sshd service is allowed in this zone, it means that firewalld has port 22 opened for this zone automatically. Here's the "home" zone's info:
+
+<pre>
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-zone=home <span style="letter-spacing:1.5px">-</span>-list-all
+home
+  interfaces:
+  sources:
+  services: dhcpv6-client ipp-client mdns samba-client ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+</pre>
+
+
+In both the "home" and the "public" zones shown above, there isn't any ip address restriction, however we can add one, like this:
+
+<pre>
+$ firewall-cmd --zone=public --add-source=192.168.50.0/24
+success
+</pre>
+
+Now let's check that an ip range restriction has now been applied:
+
+<pre>
+$ firewall-cmd --list-all --zone=public
+public (default, active)
+  interfaces: enp0s3 enp0s8
+  <strong>sources: 192.168.50.0/24</strong>
+  services: dhcpv6-client ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+</pre>
+
+However this change isn't persistent, and is reverted when the the firewalld service is restarted:
+
+
+<pre>
+$ systemctl restart firewalld.service
+$ firewall-cmd --list-all --zone=public
+public (default, active)
+  interfaces: enp0s3
+  sources:
+  services: dhcpv6-client ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+</pre>
+
+To make this change persistant, you need to use the "--permenant" flag:
+
+<pre>
+$ firewall-cmd --zone=public --add-source=192.168.50.0/24 --permanent
+success
+</pre>
+
+However this change will take affect after a firewalld service restart:
+
+
+<pre>
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-list-all <span style="letter-spacing:1.5px">-</span>-zone=public
+public (default, active)
+  interfaces: enp0s3
+  sources:
+  services: dhcpv6-client ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+
+$ systemctl restart firewalld.service
+$
+$ firewall-cmd --list-all --zone=public
+public (default, active)
+  interfaces: enp0s3
+  sources: 192.168.50.0/24
+  services: dhcpv6-client ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+</pre>
+
+Hence, using the "--permenant" setting is a bit like how systemctl's "enable", i.e. it only takes affect after a service restart. Therefore if you want to make a persistant change that also is active in the current firewalld.session, then you will need run the same firewall-cmd command twice, one without the --permenant option, and one with.
+
+Notice above that the httpd service is not currently permitted in this zone. This means that we'll get a connection timeout message when you try to open a web browser and access the vm's web server's homepage.
+
+To fix this issue, we need to add the appropriate services to the zone. Let's first see what services we have available:
+
+<pre>
+$ firewall-cmd --get-services
+RH-Satellite-6 amanda-client bacula bacula-client dhcp dhcpv6 dhcpv6-client dns ftp high-availability <mark>http</mark> <mark>https</mark> imaps ipp ipp-client ipsec kerberos kpasswd ldap ldaps libvirt libvirt-tls mdns mountd ms-wbt mysql nfs ntp openvpn pmcd pmproxy pmwebapi pmwebapis pop3s postgresql proxy-dhcp radius rpc-bind samba samba-client smtp ssh telnet tftp tftp-client transmission-client vnc-server wbem-https
+</pre>
+
+Now let's add the httpd related services to the zone:
+
+<pre>
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-service=http <span style="letter-spacing:1.5px">-</span>-zone=public
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-service=http <span style="letter-spacing:1.5px">-</span>-zone=public <span style="letter-spacing:1.5px">-</span>-permanent
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-service=https
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-service=https <span style="letter-spacing:1.5px">-</span>-zone=public <span style="letter-spacing:1.5px">-</span>-permanent
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-list-all <span style="letter-spacing:1.5px">-</span>-zone=public
+public (default, active)
+  interfaces: enp0s3
+  sources: 192.168.50.0/24
+  services: dhcpv6-client <strong>http https</strong> ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+</pre>
+
+
+After that you should now be able to access the websites.
+
+Also instead of adding the http and https services to the zone, we could have added the ports, i.e.:
+
+<pre>
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-port=80/tcp <span style="letter-spacing:1.5px">-</span>-permanent <span style="letter-spacing:1.5px">-</span>-zone=public
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-port=443/tcp <span style="letter-spacing:1.5px">-</span>-zone=public
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-port=80/tcp <span style="letter-spacing:1.5px">-</span>-permanent <span style="letter-spacing:1.5px">-</span>-zone=public
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-add-port=443/tcp <span style="letter-spacing:1.5px">-</span>-permanent <span style="letter-spacing:1.5px">-</span>-zone=public
+success
+$ firewall-cmd <span style="letter-spacing:1.5px">-</span>-list-all
+public (default)
+  interfaces:
+  sources:
+  services: dhcpv6-client ssh
+  ports: 443/tcp 80/tcp
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+</pre>
+
+
+
+
+Now in the context of firewalld, a service is something that is associated to a protocol and port, and it is not the traditional services such as httpd, sshd,...etc. Due to this new definition, a service can essentially be represented in the form of a an xml file.  You can view a list of the default services by looking in the following directory:
+
+
+<pre>
+$ ls /usr/lib/firewalld/services/
+amanda-client.xml  ftp.xml                ipsec.xml        mdns.xml     pmcd.xml        radius.xml        tftp-client.xml
+bacula-client.xml  high-availability.xml  kerberos.xml     mountd.xml   pmproxy.xml     rpc-bind.xml      tftp.xml
+bacula.xml         https.xml              kpasswd.xml      ms-wbt.xml   pmwebapis.xml   samba-client.xml  transmission-client.xml
+dhcpv6-client.xml  http.xml               ldaps.xml        mysql.xml    pmwebapi.xml    samba.xml         vnc-server.xml
+dhcpv6.xml         imaps.xml              ldap.xml         nfs.xml      pop3s.xml       smtp.xml          wbem-https.xml
+dhcp.xml           ipp-client.xml         libvirt-tls.xml  ntp.xml      postgresql.xml  ssh.xml
+dns.xml            ipp.xml                libvirt.xml      openvpn.xml  proxy-dhcp.xml  telnet.xml
+</pre>
+
+You can use one of these xml files as a template to create your own custom services (i.e. xml file), however your service does not go inside the above folder, instead it has to be placed in <code>/etc/firewalld/services</code> folder. Here's an example of what one of these xml files looks like:
+
+<pre>
+$ cat /usr/lib/firewalld/services/ssh.xml
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>SSH</short>
+  <description>Secure Shell (SSH) is a protocol for logging into and executing commands on remote machines. It provides secure encrypted communications. If you plan on accessing your machine remotely via SSH over a firewalled interface, enable this option. You need the openssh-server package installed for this option to be useful.</description>
+  <strong><port protocol="tcp" port="22"/></strong>
+</service>
+</pre>
+
+In the world of firewalld, this xml file is referred to as a "service" because it associates a name (which in this case is name, ssh) to a protocol and a port number.
+
+
+<h2>Using firewall-config</h2>
+
+Finally you can do all of the above using the <strong>firewall-config</strong> GUI tool. From the terminal we run:
+
+<pre>
+$ firewall-config
+</pre>
+
+<a href="http://codingbee.net/wp-content/uploads/2015/06/XQadD0h.png"><img src="http://codingbee.net/wp-content/uploads/2015/06/XQadD0h.png" alt="" width="895" height="581" class="alignnone size-full wp-image-4768" /></a>
+
+Useful Tip: you can make the changes using firewall-cmd, and then check whether the changes are what you expected by viewing the firewall-config gui.
+
+
+
+
+See also:
+
+http://www.tecmint.com/configure-firewalld-in-centos-7/
