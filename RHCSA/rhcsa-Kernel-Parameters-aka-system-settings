@@ -1,0 +1,203 @@
+<h2>Overview</h2>
+By the end of this article you should be able to answer the following questions:
+
+[accordion]
+[toggle title="What is the command to view all the current kernel level settings (as well as kernel module settings)?"]
+$ sysctl –a
+[/toggle]
+[toggle title="What is the command to just list only the core kernel settings?"]
+$ sysctl –-system
+[/toggle]
+[toggle title="What is the command to view the current setting for the 'net.ipv6.conf.all.disable_ipv6' switch?"]
+$ sysctl -a | grep net.ipv6.conf.all.disable_ipv6
+net.ipv6.conf.all.disable_ipv6 = 0   # i.e. currently disabled
+[/toggle]
+[toggle title="Which file can you add an entry to persistantly enable the 'net.ipv6.conf.all.disable_ipv6' switch?"]
+# Append the following:
+"net.ipv6.conf.all.disable_ipv6 = 0"
+# to the file:
+/etc/sysctl.conf
+[/toggle]
+[toggle title="How do you check that the core kernel setting is now persistant?"]
+# reboot the machine then run
+$ sysctl -a | grep {setting}
+[/toggle]
+[/accordion]
+
+<hr/>
+
+In the last article we saw that each kernel module can have a bunch of settings that you can tweak by setting parameters, and also make these changes persistant.
+
+The kernel itself also comes with its own settings that can be tweaked, via customizing kernel parameters. There are a wide range of kernel level parameters that gets set a the time when the machine is booting up.
+
+
+<pre>
+
+
+$ ls -l /proc/sys
+total 0
+dr-xr-xr-x. 1 root root 0 May 25 16:31 abi
+dr-xr-xr-x. 1 root root 0 May 24 14:11 crypto
+dr-xr-xr-x. 1 root root 0 May 25 16:31 debug
+dr-xr-xr-x. 1 root root 0 May 25 16:31 dev
+dr-xr-xr-x. 1 root root 0 May 24 14:11 fs
+dr-xr-xr-x. 1 root root 0 May 24 14:11 kernel
+dr-xr-xr-x. 1 root root 0 May 24 14:11 net
+dr-xr-xr-x. 1 root root 0 May 25 16:31 sunrpc
+dr-xr-xr-x. 1 root root 0 May 24 14:11 vm
+</pre>
+
+This folder contains a list of other folders, one for each interface that the kernel offers.
+
+Each file contained within these folders contain parameter that you can edit to affect the currently running OS. However you lose any of changes when you do a reboot, becuase the entire /proc folder get deleted and recreated during reboot. Note the parameters stored in this directory are often referred to as "system parameters"
+
+Rather than going through each file, to view the parameter settings, you can instead use the sysctl command:
+
+<pre>
+$ sysctl –a
+abi.vsyscall32 = 1
+crypto.fips_enabled = 0
+debug.exception-trace = 1
+debug.kprobes-optimization = 1
+dev.cdrom.autoclose = 1
+dev.cdrom.autoeject = 0
+.
+.
+.
+</pre>
+
+Here, the periods are used as delimiters, which you can think of forward slashes to locate the file.
+
+sysctl can also be used to apply changes to the kernel parameter settings:
+
+<pre>
+$ sysctl -a | grep "ip_forward "
+net.ipv4.ip_forward = 1
+$ sysctl net.ipv4.ip_forward=0
+net.ipv4.ip_forward = 0
+$ sysctl -a | grep "ip_forward "
+net.ipv4.ip_forward = 0
+</pre>
+
+However this change only applies to the current OS run time and won't survive a reboot.
+
+To make it persistant then you need to add the setting to the following file:
+
+<pre>
+$ cat /etc/sysctl.conf
+# System default settings live in /usr/lib/sysctl.d/00-system.conf.
+# To override those settings, enter new settings here, or in an /etc/sysctl.d/<name>.conf file
+#
+# For more information, see sysctl.conf(5) and sysctl.d(5).
+
+</pre>
+
+
+<strong>Note: In this example I couldn't get it working with the "net.ipv4.ip_forward" setting. This could be a bug with rhel/centos. However I got it working with the setting "net.ipv6.conf.all.disable_ipv6" which I will use as example for the remainder of this tutorial. Update: I did get this working eventually by doing a kernel and systemd update.</strong>
+
+
+This file prompts you to see the default settings file, 00-system.conf. This file is useful because it tells you what the "0" and "1" binary values means:
+
+
+<pre>
+$  cat /usr/lib/sysctl.d/00-system.conf
+# Kernel sysctl configuration file
+#
+# For binary values, 0 is disabled, 1 is enabled.  See sysctl(8) and
+# sysctl.conf(5) for more details.
+
+# Disable netfilter on bridges.
+net.bridge.bridge-nf-call-ip6tables = 0
+net.bridge.bridge-nf-call-iptables = 0
+net.bridge.bridge-nf-call-arptables = 0
+
+# Controls the maximum shared segment size, in bytes
+kernel.shmmax = 4294967295
+
+# Controls the maximum number of shared memory segments, in pages
+
+
+</pre>
+
+
+
+first off, the default setting is:
+
+
+<pre>
+sysctl -a | grep "net.ipv6.conf.all.disable_ipv6"
+net.ipv6.conf.all.disable_ipv6 = 0
+</pre>
+
+We want to enable this feature (i.e. set this to "1") and make it survive a reboot. To do this we can append the line "net.ipv6.conf.all.disable_ipv6 = 0" to "/etc/sysctl.conf", However we can end up adding a lot of lines to this file and cluttering it up. Instead it is better practice to add your entry in somewhere in the following directory:
+
+
+<pre>
+$ ls -l /etc/sysctl.d/
+total 4
+lrwxrwxrwx. 1 root root 14 Apr  3 16:19 99-sysctl.conf -> ../sysctl.conf
+</pre>
+
+you can either add the entry to an existing *.conf file or create new *.conf file. In my case I created my own file:
+
+<pre>
+$ ls -l /etc/sysctl.d/
+total 4
+<strong>-rw-r--r--. 1 root root 87 May 28 05:47 10-custom-setting.conf</strong>
+lrwxrwxrwx. 1 root root 14 Apr  3 16:19 99-sysctl.conf -> ../sysctl.conf
+$ cat /etc/sysctl.d/10-custom-setting.conf
+# net.ipv6.conf.all.disable_ipv6 default value is 0
+net.ipv6.conf.all.disable_ipv6 = 1
+
+
+</pre>
+
+Note, you need to prefix the .conf file's name with 2 digits followed by a hyphen. This is to do with executing the .conf files in a sequence. However the actaul file name itself can be set to what you prefer.
+
+
+Now let's test our new config file like this:
+
+
+
+<pre>
+$  sysctl -a | grep "net.ipv6.conf.all.disable_ipv6"
+net.ipv6.conf.all.disable_ipv6 = 0
+
+$ sysctl --system
+* Applying /usr/lib/sysctl.d/00-system.conf ...
+net.bridge.bridge-nf-call-ip6tables = 0
+net.bridge.bridge-nf-call-iptables = 0
+net.bridge.bridge-nf-call-arptables = 0
+kernel.shmmax = 4294967295
+kernel.shmall = 268435456
+* Applying /etc/sysctl.d/10-custom-setting.conf ...
+net.ipv6.conf.all.disable_ipv6 = 1
+* Applying /usr/lib/sysctl.d/50-default.conf ...
+kernel.sysrq = 16
+kernel.core_uses_pid = 1
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.conf.default.accept_source_route = 0
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+* Applying /etc/sysctl.d/99-sysctl.conf ...
+* Applying /usr/lib/sysctl.d/libvirtd.conf ...
+fs.aio-max-nr = 1048576
+* Applying /etc/sysctl.conf ...
+
+$ sysctl -a | grep "net.ipv6.conf.all.disable_ipv6"
+net.ipv6.conf.all.disable_ipv6 = 1
+
+
+</pre>
+
+
+After that I reboot the machine and check the setting again:
+
+
+<pre>
+$ sysctl -a | grep "net.ipv6.conf.all.disable_ipv6"
+net.ipv6.conf.all.disable_ipv6 = 1
+</pre>
+
+
+Success!
