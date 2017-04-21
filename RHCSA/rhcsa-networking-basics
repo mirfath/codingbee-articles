@@ -1,0 +1,70 @@
+One of the first things you need to realise is that "interfaces" and "connections" are not the same thing. They are closely related to each other, but they refer to different things.
+
+<h2>Network Interfaces</h2>
+An <strong>interface</strong> is actually the slots on your physical network card. Some of these interfaces can be virtual slots. But ultimately they are like tunnels from your machine to the outside world. You can view a list of your interfaces using the ip command like this:
+
+
+<pre>
+$ ip link show
+1: <mark>lo</mark>: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: <mark>enp0s3</mark>: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:d4:f9:99 brd ff:ff:ff:ff:ff:ff
+3: <mark>enp0s8</mark>: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:46:bf:38 brd ff:ff:ff:ff:ff:ff
+</pre>
+
+As you can see we have 3 interfaces on our machine.
+
+These interfaces on their own don't know what connection config data to use, e.g. ip address, and that's where "connections" comes into play.
+
+<h2>Connections</h2>
+A <strong>connection</strong> is acutally a config file that contains information that an interface uses to connect to a network. All these connections files resides in the following directory, and their file name is in the form of ifcfg-{interface-name}:
+
+<pre>
+$ ls -l /etc/sysconfig/network-scripts | grep ifcfg
+-rw-r--r--. 1 root root   318 Sep 16 19:31 ifcfg-enp0s3
+-rw-r--r--. 1 root root   215 Oct  3 07:58 ifcfg-enp0s8
+-rw-r--r--. 1 root root   254 Jan 15  2015 ifcfg-lo
+</pre>
+
+As you can see, each interface has it's own (connection) file.
+
+
+
+
+
+
+
+<h2>Network Manager</h2>
+This is a collection of gui, tui, and cli utilities that are used to configure your network settings. All these utilities interacts with the NetworkManager service:
+
+<pre>
+$ systemctl status NetworkManager
+NetworkManager.service - Network Manager
+   Loaded: loaded (/usr/lib/systemd/system/NetworkManager.service; enabled)
+   Active: active (running) since Sat 2015-10-17 00:12:08 BST; 2 weeks 0 days ago
+ Main PID: 590 (NetworkManager)
+   CGroup: /system.slice/NetworkManager.service
+           ├─ 590 /usr/sbin/NetworkManager --no-daemon
+           └─4595 /sbin/dhclient -d -q -sf /usr/libexec/nm-dhcp-helper -pf /var/run/dhclient-enp0s3.pid -lf /var/lib/NetworkManag...
+
+Oct 31 18:31:14 puppetmaster.local NetworkManager[590]: <info>  (enp0s3): Activation: Stage 5 of 5 (IPv4 Commit) complete.
+</pre>
+
+
+<h2>The Network service</h2>
+There is a service called "network" which uses a connection's info to establish an internet session on an interface.
+
+<pre>
+$ systemctl status network
+network.service - LSB: Bring up/down networking
+   Loaded: loaded (/etc/rc.d/init.d/network)
+   Active: active (exited) since Sat 2015-10-17 00:12:11 BST; 2 weeks 0 days ago
+  Process: 693 ExecStart=/etc/rc.d/init.d/network start (code=exited, status=0/SUCCESS)
+
+Oct 17 00:12:08 puppetmaster.local systemd[1]: Starting LSB: Bring up/down networking...
+</pre>
+
+
+    
