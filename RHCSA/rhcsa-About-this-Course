@@ -1,0 +1,31 @@
+This course covers everything you need to know in order to pass the official Red Hat Certified Systems Administrator (RHCSA) exam.
+
+There are a lot of different Linux Operating Systems, but only a small number of them are enterprise-grade level that are used by large corporations. One of the most popular enterprise-grade Linux OS is called RHEL, and this OS is made by Red Hat. RHEL is short for "Red Hat Enterprise Linux".
+
+RHEL is quite expensive to buy. However there are free alternatives such as <a href="http://www.centos.org/" rel="nofollow">CentOS</a> and <a href="https://www.scientificlinux.org/" rel="nofollow">Scientific Linux</a>. These alternatives are identical to RHEL in every way except that all the red hat logos and branding have been replaced.
+
+<h2>Get Certified</h2>
+The RHCSA certification is considered to be the gold started standard in validating your Linux skills in the Corporate IT world. Therefore this certification puts you in a strong position in the Linux and Devops job market.
+
+There is also the next level up Red Had certification, which is RHCE.
+
+
+<h2>Why CentOS</h2>
+Throughout this course we will be using CentOS. But everything we do will also work in exactly the same way as RHEL.
+
+
+
+<h2>How this course is structured</h2>
+This course is based on the <a href="http://www.redhat.com/training/courses/ex200/examobjective" rel="nofollow">RHCSA exam objectives</a> course. This means that this series of tutorials covers everything you need to know to pass the RHCSA exam!
+
+
+Each lesson is broken down into the following sections:
+<ul>
+	<li>Commands (that are introduced in this lesson)</li>
+	<li>Config files (files that will be viewing/editing)</li>
+	<li>Course notes (this is the lesson's main content)</li>
+</ul>
+
+In this course we will be primarily focused on showing how to do everything via the terminal because it is a much faster way to perform task and also we want you to get comfortable using the shell. However there are some tasks that are easier to do via the GUI.
+
+In the next tutorial we list out all the RHCSA exam objectives along with what which tutorials cover each objective.

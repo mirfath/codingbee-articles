@@ -1,0 +1,44 @@
+I've split all the commands into the following categories:
+
+
+<h2>commands for navigating around your vm</h2>
+cd
+ls
+pwd
+
+
+<h2>commands for viewing file contents</h2>
+cat
+less
+
+
+<h2>commands for creating/moving/modifying files and folder</h2>
+mkdir
+vim
+rmdir
+touch
+redirection (technique)
+rm
+mv
+cp
+
+
+
+<h2>Commands for finding things</h2>
+grep
+find
+locate
+which
+whereis
+
+
+<h2>Commands for getting help</h2>
+man
+pinfo
+info
+whatis
+
+
+<h2>Commands for installing software</h2>
+rpm
+yum
