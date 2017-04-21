@@ -1,0 +1,341 @@
+<h2>Overview</h2>
+By the end of this article you should be able to answer the following questions:
+
+[accordion]
+[toggle title="What is the command to find more info about what all the /etc/fstab columns mean?"]
+$ man fstab
+[/toggle]
+[toggle title="What is the command to find more about what the default mount options are?"]
+$ man fstab
+[/toggle]
+[toggle title="What is the command to manually mount '/dev/sdb1' to /mnt?"]
+$ mount /dev/sdb1 /mnt
+[/toggle]
+[toggle title="What are the three command to indicate whether a mounting has been successful?"]
+$ lsblk
+# or
+$ mount
+# or
+$ df -h
+[/toggle]
+[toggle title="What are the 2 commands to manually unmount '/dev/sdb1' from /mnt?"]
+$ umount /mnt
+# or
+$ umount /dev/sdb1
+[/toggle]
+[toggle title="What are the 2 ways to automount a filesystem during machine boot up?"]
+- automounting via systemd
+- Adding an entry to the /etc/fstab file
+[/toggle]
+[toggle title="What are each field in the fstab file mean?"]
+column 1 - UUID=... or LABEL=... or /dev/mapper/
+column 2 - mountpoint
+column 3 - filesystem type
+column 4 - comma seperated mount options
+column 5 - backup support - normally 1, but zero for swaps
+column 6 - fsck (file system check) - normally 2, but 0 for swaps
+[/toggle]
+[toggle title="What is the command to check that the entry you added in your fstab is valid?"]
+$ mount -a
+[/toggle]
+[/accordion]
+
+<hr/>
+
+
+To recap, There are 3 steps to creating a partition and bring it into use:
+
+<ol>
+	<li>Create the partition – this is done using “fdisk” tool</li>
+	<li>format the partition (ie. install a filesystem on it) – done using the “mkfs” tool</li>
+	<li>mount the partition – done using the “mount” tool (and automate it by updating the fstab config file)</li>
+</ol>
+
+
+In the last 2 lessons we covered how to create a partition, and then format it. So in this lesson we'll cover the last step, which is how to mount a partition/hdd.
+
+
+Going back to our library example, we now have a library (analogous to a partition/hdd), that now contains bookshelves (analogous to a file system). The final step is now to unlock the library's front door (analogous to mounting), so that books (analogous to files and folders) can be brought into the library to fill up the book shelves.
+
+By the way, the phrase "mounting a file system" and "mounting a partition or hdd" both mean the same thing.
+
+There's basically 2 ways to mount a file system:
+
+<ul>
+	<li>manually mount a file system</li>
+	<li>automatically mount a file system during machine startup</li>
+</ul>
+
+
+
+<h2>manually mount a file system</h2>
+
+To do the mounting, you first need to have a directory that the filesystem will attach itself to. Directories used for this purposes is called a "mountpoint". For example /dev/sda1 is mounted onto "/boot", as shown by the lsblk command:
+
+
+<pre>
+$ lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   20G  0 disk
+<strong>├─sda1            8:1    0  500M  0 part /boot
+</strong>└─sda2            8:2    0 19.5G  0 part
+  ├─centos-swap 253:0    0    2G  0 lvm  [SWAP]
+  └─centos-root 253:1    0 17.5G  0 lvm  /
+sdb               8:16   0  2.1G  0 disk
+├─sdb1            8:17   0   10M  0 part
+├─sdb2            8:18   0   10M  0 part
+├─sdb3            8:19   0   10M  0 part
+├─sdb4            8:20   0    1K  0 part
+├─sdb5            8:21   0   10M  0 part
+├─sdb6            8:22   0   10M  0 part
+└─sdb7            8:23   0 1001M  0 part
+sr0              11:0    1 55.4M  0 rom
+</pre>
+
+That means that whenever you create a new file under the /boot directory, then that file gets stored in /dev/sda1 behind the scenes.
+
+Also notice that devices sdb1 through to sdb7 don't have any mountpoints. That's because they haven't been mounted yet. So let's try mounting sdb1. First of we need a mountpoint, we can either create a new directory, or use an existing directory.
+
+note: any content that is already in the mount-point directory will be temporarily inaccessible while it has a filesystem mounted on it. but becomes available again after you unmount the filesystem again. That’s why it is good practice to avoid using mountpoint directory for anything other than for mounting a filesystem on it.
+
+
+
+In my case, I'll choose use an existing directory, /mnt, which is currently an empty:
+
+<pre>
+$ ls -l /mnt/
+total 0
+</pre>
+
+
+Now to do the actual mounting, we use the "mount" command like this:
+
+
+<pre>
+$ mount /dev/sdb1 /mnt
+</pre>
+
+This command doesn't give any output if it is successful.
+
+
+<h3>Checking mounting has been successful</h3>
+There are 3 main ways to check whether the mounting has been successful.
+
+<strong>method 1 - use the "lsblk" command</strong>
+The first method is by using lsblk:
+
+
+<pre>
+$ lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   20G  0 disk
+├─sda1            8:1    0  500M  0 part /boot
+└─sda2            8:2    0 19.5G  0 part
+  ├─centos-swap 253:0    0    2G  0 lvm  [SWAP]
+  └─centos-root 253:1    0 17.5G  0 lvm  /
+sdb               8:16   0  2.1G  0 disk
+<strong>├─sdb1            8:17   0   10M  0 part /mnt       # Success</strong>
+├─sdb2            8:18   0   10M  0 part
+├─sdb3            8:19   0   10M  0 part
+├─sdb4            8:20   0    1K  0 part
+├─sdb5            8:21   0   10M  0 part
+├─sdb6            8:22   0   10M  0 part
+└─sdb7            8:23   0 1001M  0 part
+sr0              11:0    1 55.4M  0 rom
+
+</pre>
+
+<strong>method 2 - use the "mount" command</strong>
+The second approach is by using the is by running the "mount" on its own. However this can output a lot of info, hence the need to grep the results:
+
+
+<pre>
+$ mount | grep "^/dev"
+/dev/mapper/centos-root on / type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
+/dev/sda1 on /boot type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
+<strong>/dev/sdb1 on /mnt type ext4 (rw,relatime,seclabel,data=ordered)</strong>
+</pre>
+
+Also another cool thing about the mount command is that it shows what mount features have been enabled on a certain filesystem, e.g. filesystem, relatime,....etc.
+
+
+<strong>method 3 - use the df command</strong>
+
+The df command gives an overview of filesystem diskspace usage, and consequently lists all partitions/hdds that are currently mounted:
+
+
+<pre>
+$ df -h
+Filesystem               Size  Used Avail Use% Mounted on
+/dev/mapper/centos-root   18G  4.3G   14G  25% /
+devtmpfs                 488M     0  488M   0% /dev
+tmpfs                    497M   80K  497M   1% /dev/shm
+tmpfs                    497M   26M  472M   6% /run
+tmpfs                    497M     0  497M   0% /sys/fs/cgroup
+/dev/sda1                497M  143M  354M  29% /boot
+<strong>/dev/sdb1                8.7M  172K  7.9M   3% /mnt</strong>
+</pre>
+
+
+
+<h3>Unmounting a partition or hdd</h3>
+
+If you want to unmount sdb1, then you use the "umount" command. With this command you simply have to specify either the mountpoint or the device name for the unmount to work, i.e. you can simply run:
+
+
+<pre>
+$ umount /mnt
+</pre>
+
+or:
+
+<pre>
+$ umount /dev/sdb1
+</pre>
+
+
+<h2>Labelling a filesystem</h2>
+
+All filesystems have a UUID as an identifier but that doesn't tell us what that filesystem is being used for. That's why it is best practice to Label your filesystems. Labelling filesystem also has the benefit of making it easier to do automounting using fstab. We'll cover more about automomounting in the next section.
+
+The way you label a filesystem varies depending on whether you are labelling an xfs filesystem or an ext2/ext3/ext4 filesystem.
+
+
+<h3>Labelling a xfs filesystem</h3>
+Let's say you have an xfs filesystem installed on <em>/dev/sdb1</em>, then to label it you need to use the xfs_admin command:
+
+<pre>
+$ xfs_admin -L webdata /dev/sdb1
+</pre>
+
+In this case we have labelled it "webdata". you can confirm that this has worked like this:
+
+<pre>
+$ xfs_admin -l /dev/sdb1
+label = "webdata"
+</pre>
+
+Or you can confirm via blkid:
+
+<pre>
+$ blkid
+/dev/sda1: UUID="fb2a0d0d-1b5e-492a-ad4b-9b68d0cc3b28" TYPE="xfs"
+/dev/sda2: UUID="4r5cqp-Vwrb-Wb4T-PRTh-zSoF-cfhe-ZEfaZ7" TYPE="LVM2_member"
+/dev/mapper/centos_puppetmaster-root: UUID="c1b8426a-6c8b-48c0-8cb6-b4c8cf780239" TYPE="xfs"
+/dev/mapper/centos_puppetmaster-swap: UUID="db6994b0-eaf2-45b2-973a-a24d21130e02" TYPE="swap"
+/dev/sdb1: LABEL="webdata" UUID="e133c115-7dc8-49e1-a321-0a387813af75" TYPE="xfs"
+</pre>
+
+
+
+<h3>Labelling a ext4 filesystem</h3>
+
+If instead <em>/dev/sdb1</em> is an ext4 based filesystem. Then you label it either with the e2label command. In this case, I'll use e2label:
+
+<pre>
+$ e2label /dev/sdb1 webdata
+</pre>
+Note: you can also label an ext* filesystem using the <code>tune2fs</code> command.
+
+You can check it has worked like this:
+
+<pre>$ e2label /dev/sdb1
+webdata
+</pre>
+
+or confirm via blkid again:
+
+<pre>
+blkid
+/dev/sda1: UUID="fb2a0d0d-1b5e-492a-ad4b-9b68d0cc3b28" TYPE="xfs"
+/dev/sda2: UUID="4r5cqp-Vwrb-Wb4T-PRTh-zSoF-cfhe-ZEfaZ7" TYPE="LVM2_member"
+/dev/mapper/centos_puppetmaster-root: UUID="c1b8426a-6c8b-48c0-8cb6-b4c8cf780239" TYPE="xfs"
+/dev/mapper/centos_puppetmaster-swap: UUID="db6994b0-eaf2-45b2-973a-a24d21130e02" TYPE="swap"
+/dev/sdb1: LABEL="webdata" UUID="50063cb0-5c9f-4f45-917a-70c270232126" TYPE="ext4"
+</pre>
+
+
+<h2>Auto mount a file system during boot time</h2>
+
+
+There is a problem with mounting manually using the "mount" command, and that is that it won't persist, i.e. it won't survive a reboot. So if you reboot your machine, then the manually mounted file systems will become unmounted again after the reboot.
+
+To make it persistant, you need to automate the mounting while the machine is booting up. There 2 ways to do this:
+
+<ol>
+	<li><a href="http://codingbee.net/tutorials/rhcsa/rhcsa-automounting-using-systemd/">automounting via systemd</a></li>
+	<li>Adding an entry to the <code>/etc/fstab</code> file</li>
+</ol>
+
+
+In this lesson we're going to cover the /etc/fstab approach:
+
+There's three ways to refer to a filesystem in column 1 of fstab. By it's device path, by "UUID=" or by "LABEL=". The recommend approach is either "UUID" or "LABEL". For human readability it is best to use "LABEL" To use this approach, you first have to lable your filesystems.
+
+
+<pre>
+$ cat /etc/fstab
+
+#
+# /etc/fstab
+# Created by anaconda on Sat Mar 14 19:14:11 2015
+#
+# Accessible filesystems, by reference, are maintained under '/dev/disk'
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+#
+/dev/mapper/centos-root /                       xfs     defaults        1 1
+UUID=547c78ce-34b5-4e31-84d2-bf72b196fa57 /boot                   xfs     defaults        1 2
+/dev/mapper/centos-swap swap                    swap    defaults        0 0
+</pre>
+
+
+
+The fstab (aka filesystem table) file's main purpose is to automounting block devices.
+
+Each row is made up of column entries:
+
+
+<strong>Column 1</strong> - This can be the block's UUID=... or LABEL=... value, or a logical volume name, /dev/mapper/... . Notice that we don't specify block devices, e.g. /dev/sda1. That's because occasionally it is possible that a block device actually gets mapped to a different hdd/partition if machine is rebooted. That's why block devices can be ambiguous.
+
+<strong>Column 2</strong> - This is the mountpoint
+
+<strong>Column 3</strong> - This is the file system type, e.g. ext4, xfs,...etc.
+
+<strong>Column 4</strong> - This is where you can specify various mount options. It can be set to "defaults", or a comma seperated list. The fstab man page and the mount page lists all the mount options that are independent of any file system types. Whereas file system type mount options are detailed in their respective file system type man pages. In the man pages you'll discover that the "defaults" covers the following:
+
+
+<pre>
+.
+.
+defaults
+              Use default options: rw, suid, dev, exec, auto, nouser, and async.
+.
+.
+</pre>
+
+These are the defaults for non file system specific default mount options. For file system specific default options, you will need to check out the respective mount options.
+
+<strong>Column 5</strong> - This is to do with backup support for the <a href="http://en.wikipedia.org/wiki/Dump_(program)">dump backup utility</a>. This is not used that often anymore but if you do want to your filesystem to be backed up then you should enable this by setting it to "1". It is recommended to set this to "1". If however you are dealing with a swap partition, then you should leave this disabled by setting it to "0".
+
+<strong>Column 6</strong> - relates to the ordering that fsck performs all it check through all the devices. the root directory (/) should be set to 1, and all other filesystems should be set to 2. This is so that the root filesystem has a higher priority over all other file systems. You should also disable this check (by setting it to 0) for readonly filesystems, or swap partitions. In all other cases, it is recommended that this is set to "2".
+
+
+For more info about these 6 column's check out:
+
+<pre>$ man fstab</pre>
+
+This man page is actually really handy.
+
+
+
+Once you have added your lines in the fstab, you can then test that your new configuration works by running the following:
+
+
+<pre>
+$ mount -a
+</pre>
+
+
+This will mount all block devices that are specified in the /etfc/fstab, unless they are already mounted. If all goes well then the above command won't output anything. You can check whether your hdd/partition has been mounted by using any of the lsblk/mount/df commands as discussed earlier in this article.
+
+Note, it is important to test your /etc/fstab settings because, any errors in it will stop your machine from rebooting. 

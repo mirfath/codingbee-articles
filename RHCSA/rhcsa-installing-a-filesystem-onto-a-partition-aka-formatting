@@ -1,0 +1,327 @@
+<h2>Overview</h2>
+By the end of this article you should be able to answer the following questions:
+
+[accordion]
+[toggle title="Where can you find info about what mount options are available for each time of filesystem?"]
+$ man mount
+
+[/toggle]
+[toggle title="What is the command to view info about what filesystem types are supported in your machine?"]
+$ man fs
+[/toggle]
+[toggle title="What is the command to view help info about the 'xfs' filesystem?"]
+$ man xfs
+[/toggle]
+[toggle title="How do you list all the available formatting commands?"]
+$ mkfs  # then type tab+tab
+[/toggle]
+[toggle title="What is the command to install the xfs filesystem onto '/dev/sdb7', and then label this filesystem with the name 'DummyStorage'?"]
+$ mkfs.xfs -L "DummyStorage" /dev/sdb7
+[/toggle]
+[toggle title="What is the command to view all your device's/partition's filesystem type, UUID, as well as corresponding label (if any)?"]
+$ blkid
+[/toggle]
+[toggle title="What is the above command actually displaying?"]
+It displays filesystems rather than devices or partitions. If a device/partition does not have filesystem on it, then it doesn't appear in the list.
+[/toggle]
+[toggle title="What is the command assign the label 'storage' to an existing xfs filesystem that is installed on /dev/sdb7?"]
+$ xfs_admin -L "storage" /dev/sdb7
+[/toggle]
+[toggle title="What is the command assign the label 'webdata' to an existing ext4 filesystem that is installed on /dev/sdb1?"]
+$ e2label /dev/sdb1 webdata
+[/toggle]
+[toggle title="What is the command to delete the filesystem that is installed on /dev/sdb1?"]
+$ cat /dev/zero > /dev/sdb1
+[/toggle]
+[/accordion]
+<hr/>
+
+
+
+
+To recap, There are 3 steps to creating a partition and bring it into use:
+
+
+<ol>
+	<li><strong>Create the partition</strong> – this is done using “fdisk” tool</li>
+	<li><strong>Format the partition</strong> – This is also known as installing a filesystem. It is done using the “mkfs” command</li>
+	<li><strong>Mount the partition</strong> – done using the “mount” tool (and automate it by updating the fstab config file)</li>
+</ol>
+
+
+In the last lesson we covered step 1, now we'll cover step 2.
+
+
+<h2>File system types</h2>
+There are several main filesystem types that are available:
+
+
+<ul>
+	<li><strong>XFS</strong> - This is now the default filesystem in RHEL 7.</li>
+	<li><strong>Ext4</strong> - This used to be the default file system up to and including RHEL 6</li>
+	<li><strong><a href="http://en.wikipedia.org/wiki/Btrfs">Btrfs</a></strong> - This is going to become the successor to XFS. That's because this is a "Copy-on-Write" (aka CoW) file system, i.e. this filesystem has a fail-safe mechanism, where the filesystem takes a copy of a file and save it elsewhere just before any changes are applied to the original file. Hence with btrfs you can always rollback to previous versions of a particular file. In this respect Btrfs works a bit like a version-control-system, like svn, git, etc.</li>
+	<li><strong>vfat</strong> - This is typically used for removable media, e.g. USB pens</li>
+	<li><strong>GFS2</strong> - This is typically used if you have multiple nodes that want to write to the same filesystem at the same time</li>
+	<li><strong>Gluster</strong> - This is a distributed filesystem, that means that to the end user, this filesystem looks like it resides on on server, but behind the scene it is spread across multiple servers. This filesystem is useful for setting up cloud environments.</li>
+</ul>
+
+Note: some features are not available on all fs types, e.g. <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-access-control-list-acl/">ACL</a> is not available on xfs. The mount commnd's man page tells you what options are available for each type.
+
+To view a complete list of supported filesystems, check out:
+
+
+<pre>
+$ man fs
+</pre>
+
+Each file system type has their own man page as well, e.g. to learn more about xfs, you do:
+
+
+<pre>$ man xfs</pre>
+
+
+
+
+In the last lesson we covered how to created partitions, but didn't format (aka install filesystem on) them. This is a bit like a library that doesn't have any bookshelves, and hence unable to store any books. Installing a filesystem is a bit like filling the library up with book shelves.
+
+
+<h2>Install a file system</h2>
+To install a filesystem on a partition (or an unpartitioned hdd) you need to use one of the following commands:
+
+
+<pre>
+$ mkfs   # I pressed the tab key twice, write after typing "mkfs"
+mkfs         mkfs.cramfs  mkfs.ext3    mkfs.fat     mkfs.msdos   mkfs.xfs
+mkfs.btrfs   mkfs.ext2    mkfs.ext4    mkfs.minix   mkfs.vfat
+</pre>
+
+
+Since xfs is recommended filesystem, we will therefore use mkfs.xfs:
+
+
+<pre>
+$ whatis mkfs.xfs
+mkfs.xfs (8)         - construct an XFS filesystem
+</pre>
+
+
+Let's now install the xfs filesystem onto one of our partitions/hdds:
+
+<pre>
+$ mkfs.xfs -L "DummyStorage" /dev/sdb7
+meta-data=/dev/sdb7              isize=256    agcount=4, agsize=64064 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=0        finobt=0
+data     =                       bsize=4096   blocks=256256, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=0
+log      =internal log           bsize=4096   blocks=853, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+
+</pre>
+
+
+As you can see, you need to pass in the file representation of the partition as the main parameter. This is the same with all the other mkfs utilities.
+
+Notice that I used the "L" switch. This is optional, but is recommended because it lets you assign a human friendly name to your partition/hdd. This is important because the current name, (which in this case is /dev/sdb7) was a name that was auto-assigned to do the device, and if you then plug in a usb-pen, then reboot your machine, then there is a chance that the usb-pen will change which devices are auto-assigned which name. Hence labels solve this problem.
+
+Having a label or knowing the UUID (which we will cover next) is important, since we need this info as part of the 3rd and final step, which is mounting the partition.
+
+
+As soon as a hdd/partition is formatted, a unique ID (UUID) is attached to that hdd/partition. You can use the blkid command to view a list of all formatted partitions/hdd along with their UUID value:
+
+<pre>
+$ blkid
+/dev/sda1: UUID="547c78ce-34b5-4e31-84d2-bf72b196fa57" TYPE="xfs"
+/dev/sda2: UUID="JnfbeO-XPAG-AS0O-Mrtw-hnwn-7hqf-Mhk46t" TYPE="LVM2_member"
+/dev/sdb1: LABEL="DummyExt4Storage" UUID="eeb45452-3e56-4455-a7c0-0e2e41d8a3cf" TYPE="ext4"
+/dev/sdb7: LABEL="DummyStorage" UUID="f252bb11-abaa-4744-8001-e82b0e066b17" TYPE="xfs"
+/dev/mapper/centos-swap: UUID="94263d84-5357-4566-9987-fc74ca946a96" TYPE="swap"
+/dev/mapper/centos-root: UUID="17f09dae-88d1-4813-9738-8996819cf6ba" TYPE="xfs"
+</pre>
+
+Notice that our labels are displayed here too.
+
+There are number of partitions that are listed in /proc/partition (or lsblk), but are not listed by blkid, e.g. /dev/sdb3. That's because, these missing hdd/partitions have not been formatted yet, and consequently they don't have a UUID value yet. The blkid command's primary purpose is to show the hdd/partition UUID value for each device. Another cool thing about the blkid is that it also tells you what file system type has been installed on each partition/hdd.
+
+
+So what is the difference between lsblk and blkid? blkid command essentially gives information about all the filesystems that exists on your machine along with the device that's housing it, whereas lsblk lists all the devices/partitions/LVs, but doesn't indicate which devices/parttitions/LVs has a filesytem installed on it.
+
+
+If one of your xfs partitions doesn't have a label, then you simply add using the <strong>xfs_admin</strong> command:
+
+
+<pre>
+$ blkid | grep sdb7
+/dev/sdb7: UUID="b8612f42-96fe-4671-89bb-9ee51691a311" TYPE="xfs"
+$ xfs_admin -L "XfsPartition" /dev/sdb7
+writing all SBs
+new label = "XfsPartition"
+$ blkid | grep sdb7
+/dev/sdb7: LABEL="XfsPartition" UUID="b8612f42-96fe-4671-89bb-9ee51691a311" TYPE="xfs"
+</pre>
+
+
+You can also assign a label to an existing ext* filesystem. For example if /dev/sdb1 is an ext4 based filesystem. Then you label it with the e2label command:
+
+<pre>
+$ e2label /dev/sdb1 webdata
+</pre>
+
+Here we have set the label for /dev/sdb1 to webdata.
+
+
+<h2>Using the "file" command to analyse block devices</h2>
+
+If you have a hdd/partition and want to find out which file system type is installed on it, then the best way to do this is by using the "file" command with the (s)pecial file option enabled so that it does additional analysis of it's target. I also enabled the symbolic (L)ink option, so to auto-resolve any sybmolic links. Here are a few examples:
+
+<pre>
+$ file -sL /dev/sda1
+/dev/sda1: SGI XFS filesystem data (blksz 4096, inosz 256, v2 dirs)
+</pre>
+
+Next we have:
+
+<pre>
+$ file -sL /dev/sdb2
+/dev/sdb2: data
+</pre>
+
+Here it means that sdb2 doesn't have a filesystem installed yet, i.e. it hasn't been formatted yet.
+
+
+Here's an example of a partition with an ext4 filesystem installed on it:
+<pre>
+$ file -sL /dev/sdb1
+/dev/sdb1: Linux rev 1.0 ext4 filesystem data, UUID=eeb45452-3e56-4455-a7c0-0e2e41d8a3cf, volume name "DummyExt4Storage" (extents) (64bit) (huge files)
+</pre>
+
+
+
+Next we have an example of an LVM's physical volume:
+
+<pre>
+$ file -sL /dev/sda2
+/dev/sda2: LVM2 PV (Linux Logical Volume Manager), UUID: JnfbeO-XPAG-AS0O-Mrtw-hnwn-7hqf-Mhk46t, size: 20949499904
+</pre>
+
+We'll cover LVM later.
+
+
+<h2>Delete a file system</h2>
+
+There could be times when you will want to delete a filesytem from a partition. You might think that deleting a file system could be done by deleting entire partition (and recreate it again) using fdisk. However that doesn't work since deleting a partition doesn't delete any data on the disk, it just deletes the artificial partition boundaries. You can see my attempt at doing this here, for the /dev/sdb1 partition:
+
+<pre>
+$ blkid
+/dev/sr0: UUID="2015-03-02-14-24-20-00" LABEL="VBOXADDITIONS_4.3.24_98716" TYPE="iso9660"
+/dev/sda1: UUID="547c78ce-34b5-4e31-84d2-bf72b196fa57" TYPE="xfs"
+/dev/sda2: UUID="JnfbeO-XPAG-AS0O-Mrtw-hnwn-7hqf-Mhk46t" TYPE="LVM2_member"
+/dev/mapper/centos-swap: UUID="94263d84-5357-4566-9987-fc74ca946a96" TYPE="swap"
+/dev/mapper/centos-root: UUID="17f09dae-88d1-4813-9738-8996819cf6ba" TYPE="xfs"
+/dev/sdb1: UUID="9fa9e491-8e21-4322-a1c2-dc269825e824" TYPE="xfs"
+
+
+$ fdisk /dev/sdb
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): d
+Selected partition 1
+Partition 1 is deleted
+
+Command (m for help): w
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+
+$ blkid
+/dev/sr0: UUID="2015-03-02-14-24-20-00" LABEL="VBOXADDITIONS_4.3.24_98716" TYPE="iso9660"
+/dev/sda1: UUID="547c78ce-34b5-4e31-84d2-bf72b196fa57" TYPE="xfs"
+/dev/sda2: UUID="JnfbeO-XPAG-AS0O-Mrtw-hnwn-7hqf-Mhk46t" TYPE="LVM2_member"
+/dev/mapper/centos-swap: UUID="94263d84-5357-4566-9987-fc74ca946a96" TYPE="swap"
+/dev/mapper/centos-root: UUID="17f09dae-88d1-4813-9738-8996819cf6ba" TYPE="xfs"
+/dev/sdb: PTTYPE="dos"
+
+
+$ fdisk /dev/sdb
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): n
+Partition type:
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended
+Select (default p): p
+Partition number (1-4, default 1):
+First sector (2048-4310167, default 2048):
+Using default value 2048
+Last sector, +sectors or +size{K,M,G} (2048-4310167, default 4310167): +200M
+Partition 1 of type Linux and of size 200 MiB is set
+
+Command (m for help): w
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+Syncing disks.
+$ blkid
+/dev/sr0: UUID="2015-03-02-14-24-20-00" LABEL="VBOXADDITIONS_4.3.24_98716" TYPE="iso9660"
+/dev/sda1: UUID="547c78ce-34b5-4e31-84d2-bf72b196fa57" TYPE="xfs"
+/dev/sda2: UUID="JnfbeO-XPAG-AS0O-Mrtw-hnwn-7hqf-Mhk46t" TYPE="LVM2_member"
+/dev/mapper/centos-swap: UUID="94263d84-5357-4566-9987-fc74ca946a96" TYPE="swap"
+/dev/mapper/centos-root: UUID="17f09dae-88d1-4813-9738-8996819cf6ba" TYPE="xfs"
+/dev/sdb1: UUID="9fa9e491-8e21-4322-a1c2-dc269825e824" TYPE="xfs"
+
+
+</pre>
+
+
+Hence deleting a file system is best done with the help of the <a href="http://en.wikipedia.org/?title=/dev/zero">/dev/zero</a> file:
+
+
+<pre>
+$ cat /dev/zero > /dev/sdb1
+</pre>
+
+Here's the approach in action:
+
+
+<pre>
+$ lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   20G  0 disk
+├─sda1            8:1    0  500M  0 part /boot
+└─sda2            8:2    0 19.5G  0 part
+  ├─centos-swap 253:0    0    2G  0 lvm  [SWAP]
+  └─centos-root 253:1    0 17.5G  0 lvm  /
+sdb               8:16   0  2.1G  0 disk
+└─sdb1            8:17   0  200M  0 part
+sr0              11:0    1 55.4M  0 rom
+$ blkid | grep sdb1
+/dev/sdb1: UUID="9fa9e491-8e21-4322-a1c2-dc269825e824" TYPE="xfs"
+$ cat /dev/zero > /dev/sdb1
+cat: write error: No space left on device
+$ lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   20G  0 disk
+├─sda1            8:1    0  500M  0 part /boot
+└─sda2            8:2    0 19.5G  0 part
+  ├─centos-swap 253:0    0    2G  0 lvm  [SWAP]
+  └─centos-root 253:1    0 17.5G  0 lvm  /
+sdb               8:16   0  2.1G  0 disk
+└─sdb1            8:17   0  200M  0 part
+sr0              11:0    1 55.4M  0 rom
+$ blkid | grep sdb1
+
+</pre>
+
+As you can see the filesystem has been deleted but the partition itself stays in intact.
