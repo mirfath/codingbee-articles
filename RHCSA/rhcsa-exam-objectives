@@ -1,0 +1,550 @@
+In this course we will cover every single RHCSA exam objects. Here's a copy the RHCSA exam objectives (as of October 2015). We have mapped each objective with tutorials that covers them:
+
+<h4>Understand and use essential tools</h4>
+[expand title="Access a shell prompt and issue commands with correct syntax" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-the-bash-terminal/">RHCSA – The Bash Terminal</a>
+[/expand]
+<br />
+[expand title="Use input-output redirection" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-input-and-output-redirection/">RHCSA – Standard Outputs, Inputs, and Errors</a>
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-standard-inputoutputerror-redirection-and-piping/">Piping and Redirection</a>
+[/expand]
+<br />
+[expand title="Use grep and regular expressions to analyze text" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-the-grep-command-and-regular-expressions/">RHCSA - The grep command</a>
+[/expand]
+<br />
+[expand title="Access remote systems using ssh" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-the-bash-terminal/">RHCSA - The Bash Terminal</a>
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-secure-shell-ssh/">The Secure Shell (SSH)</a>
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-ssh-fingerprint-authentication/">RHCSA – SSH fingerprint authentication</a>
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-create-ssh-session-without-typing-a-password-publicprivate-key-authentication/">RHCSA – Create SSH session without typing a password (Public/Private Key Authentication)</a>
+[/expand]
+<br />
+[expand title="Log in and switch users in multiuser targets" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Archive, compress, unpack, and uncompress files using tar, star, gzip, and bzip2" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-compressing-files-and-folders-using-gzip-and-tar/">RHCSA – Compressing files and folders using gzip and tar</a>
+[/expand]
+<br />
+[expand title="Create and edit text files" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Create, delete, copy, and move files and directories" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Create hard and soft links" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-hard-and-soft-links/">RHCSA - Hard and Soft Links</a>
+[/expand]
+<br />
+[expand title="List, set, and change standard ugo/rwx permissions" alt=" "]
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-understanding-usergroupother-permissions/">RHCSA - File and Folder Permissions</a>
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-special-file-and-folder-permissions/">RHCSA – Special File and Folder Permissions</a>
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-special-file-and-folder-permissions/">RHCSA – Access Control List (ACL)</a>
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Locate, read, and use system documentation including man, info, and files in /usr/share/doc" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-access-linux-help-guides/">RHCSA – Access Linux help guides</a>
+[/expand]
+
+
+
+
+
+
+
+<h4>Operate running systems</h4>
+[expand title="Boot, reboot, and shut down a system normally" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Boot systems into different targets manually" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Interrupt the boot process in order to gain access to a system" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Identify CPU/memory intensive processes, adjust process priority with renice, and kill processes" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Locate and interpret system log files and journals" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Access a virtual machine's console" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Start and stop virtual machines" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Start, stop, and check the status of network services" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Securely transfer files between systems" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+
+
+
+
+
+
+
+
+
+
+<h4>Configure local storage</h4>
+[expand title="List, create, delete partitions on MBR and GPT disks" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Create and remove physical volumes, assign physical volumes to volume groups, and create and delete logical volumes" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Configure systems to mount file systems at boot by Universally Unique ID (UUID) or label" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Add new partitions and logical volumes, and swap to a system non-destructively" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+
+
+
+<h4>Create and configure file systems</h4>
+[expand title="Create, mount, unmount, and use vfat, ext4, and xfs file systems" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Mount and unmount CIFS and NFS network file systems" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Extend existing logical volumes" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Create and configure set-GID directories for collaboration" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Create and manage Access Control Lists (ACLs)" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Diagnose and correct file permission problems" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+
+
+
+
+
+
+
+
+
+
+<h4>Deploy, configure, and maintain systems</h4>
+[expand title="Configure networking and hostname resolution statically or dynamically" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Schedule tasks using at and cron" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Start and stop services and configure services to start automatically at boot" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Configure systems to boot into a specific target automatically" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Install Red Hat Enterprise Linux automatically using Kickstart" alt=" "]
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-automating-rhel-installation-with-kickstart/">RHCSA - Automating RHEL installations using Kickstart</a>
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-how-to-create-a-kickstart-file/">How to create kickstart files</a>
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Configure a physical machine to host virtual guests" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Install Red Hat Enterprise Linux systems as virtual guests" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Configure systems to launch virtual machines at boot" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Configure network services to start automatically at boot" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Configure a system to use time services" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Install and update software packages from Red Hat Network, a remote repository, or from the local file system" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Update the kernel package appropriately to ensure a bootable system" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Modify the system bootloader" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+
+
+
+
+
+
+<h4>Manage users and groups</h4>
+[expand title="Create, delete, and modify local user accounts" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-adding-managing-and-removing-users/">RHCSA – Adding, modifying, and deleting users</a>
+[/expand]
+<br />
+[expand title="Change passwords and adjust password aging for local user accounts" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-password-properties-passwd-and-chage-commands/">RHCSA – Password properties (passwd and chage commands)</a>
+
+[/expand]
+<br />
+[expand title="Create, delete, and modify local groups and group memberships" alt=" "]
+
+-- <a href="http://codingbee.net/tutorials/rhcsa/rhcsa-creating-modifying-and-deleting-groups/">RHCSA – Creating, modifying, and deleting groups</a>
+[/expand]
+<br />
+[expand title="Configure a system to use an existing authentication service for user and group information" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+
+
+
+
+
+
+
+
+
+
+
+
+<h4>Manage security</h4>
+[expand title="Configure firewall settings using firewall-config, firewall-cmd, or iptables" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Configure key-based authentication for SSH" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Set enforcing and permissive modes for SELinux" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="List and identify SELinux file and process context" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Restore default file contexts" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Use boolean settings to modify system SELinux settings" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+[expand title="Diagnose and address routine SELinux policy violations" alt=" "]
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+-- articlelink
+[/expand]
+<br />
+
+
+
+The above objectives were taken from <a href="https://www.redhat.com/en/services/training/ex200-red-hat-certified-system-administrator-rhcsa-exam">Red Hat</a> as of October 2015.
