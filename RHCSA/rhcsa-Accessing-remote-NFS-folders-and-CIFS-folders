@@ -1,0 +1,239 @@
+By the end of this article you should be able to answer the following questions:
+
+[accordion]
+[toggle title="01. What is the command to install the nfs client side packages?"]
+$ yum install nfs-utils
+[/toggle]
+[toggle title="02. What is the command to check what folders the server 'The-Server' is sharing via nfs?"]
+$ showmount -e The-Server
+[/toggle]
+[toggle title="03. What is the command to install the CIFS/Samba client side packages?"]
+$ yum install samba-client cifs-utils
+[/toggle]
+[toggle title="04. What is the command to check what folders the server 'The-Server' is sharing via CIFS/Samba by querying as the user 'vagrant'?"]
+$ smbclient -L The-Server <span style="letter-spacing:0.1px">-</span>-user vagrant
+[/toggle]
+[toggle title="05. What is the command to create logical folder structure for an NFS mountpoint?"]
+$ mkdir -p /nfs/{server-name}/{mountpoint}
+[/toggle]
+[toggle title="06. What is the command to manually mount onto the mountpoint, '/nfs/The-Server/Shared-Folder' the nfs share, '/nfs/Shared-Folder' that has been made available by the server 'The-Server'?"]
+$ mount -t nfs The-Server:/nfs/Shared-Folder /nfs/The-Server/Shared-Folder
+[/toggle]
+[toggle title="07. What is the command to create logical folder structure for an CIFS mountpoint, assuming the nfs server is called 'The-Server' and the folder being shared out is called 'Shared-Folder'?"]
+$ mkdir -p /cifs/The-Server/Shared-Folder
+[/toggle]
+[toggle title="08. What is the command to manually mount onto the mountpoint, '/cifs/The-Server/Shared-Folder' the cifs share, 'Shared-Folder' that has been made available by the server 'The-Server', where the smb username is 'vagrant', and corresponding password is 'admin'?"]
+$ mount -t cifs -o user=vagrant,password=admin <mark>//</mark>The-Server/Shared-Folder /cifs/The-Server/Shared-Folder
+# Note, you must use the double-slash syntax.
+[/toggle]
+[toggle title="09. What two commands can you run to check the cifs or nfs mount has worked?"]
+$ mount
+# or
+$ df -h
+[/toggle]
+[/accordion]
+
+<hr/>
+
+
+
+<h2>Checking for any available NFS shares</h2>
+In our scenario we know that The-Server is sharing folders via the NFS and CIFS/Samba technology.
+
+Before we can access The-Server's nfs shared folder, we first see what folders The-Server has made available for sharing via nfs. To do this we first need to install:
+
+<pre>
+$ yum install nfs-utils
+</pre>
+
+
+
+This package installs a few things including <code>showmount</code> command. This command is used to query nfs servers to see what folders it's sharing via nfs (if any). In our scenario we'll use it to check what folder The-Server has made available for sharing:
+
+<pre>
+$ showmount -e The-Server
+Export list for The-Server:
+/nfs/Shared-Folder *
+</pre>
+
+As indicated The-Server has made the folder "/nfs/Shared-Folder" available for sharing via nfs. We'll cover access to this Share-Folder later on.
+
+
+
+<h2>Check for any available CIFS shares</h2>
+
+First you need to install the samba client:
+
+<pre>
+$ yum install samba-client cifs-utils
+</pre>
+
+Now to check for available CIF shares, you need to have a valid samba user credential. Let's assume we have valid credentials of a user called "vagrant", then to check if there are any available CIF shares we run the following command:
+
+
+<pre>
+$ smbclient -L The-Server --user vagrant
+Enter vagrant's password:
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 4.1.12]
+
+        Sharename       Type      Comment
+        ---------       ----      -------
+<strong>        Shared-Folder   Disk</strong>
+        IPC$            IPC       IPC Service (Samba Server Version 4.1.12)
+        vagrant         Disk      Home Directories
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 4.1.12]
+
+        Server               Comment
+        ---------            -------
+
+        Workgroup            Master
+        ---------            -------
+</pre>
+
+
+<h2>Accessing shared folders by "mounting" them</h2>
+
+So far we have determined that The-Server has made 2 folders available for sharing. The first folder is being shared via NFS, whereas the second folder is being shared via CIFS (aka samba). In both cases the folder called Share-Folder.
+
+We can now access these folders by "mounting" them.
+
+
+
+
+<h3>Configuring the The-Client machine to access the NFS Shared-Folder</h3>
+
+Now that we know that The-Server is sharing folders via nfs, we now need to create a folder that will act as our local representation of the Shared-Folder. We'll call it:
+
+<pre>
+$ mkdir -p /nfs/The-Server/Shared-Folder
+</pre>
+
+Notice that we used a meaningful folder structure so to make it easy to track, this is best practice. If we take a look inside this folder then it should be empty:
+
+<pre>
+$ cd /nfs/The-Server/Shared-Folder
+$ ls -l
+</pre>
+
+
+This folder is referred to as a "mount-mount". Next we "mount" The-Server's Shared-Folder onto our mountpoint, which effectively makes the Shared-Folder's content accessible. This is done using the <code>mount</code> command.
+
+<pre>
+$ mount -t nfs The-Server:/nfs/Shared-Folder /nfs/The-Server/Shared-Folder
+</pre>
+
+Now to check if this command has worked, we do:
+
+<pre>
+$ mount | grep The-Server
+The-Server:/nfs/Shared-Folder on /nfs/The-Server/Shared-Folder type nfs4 (rw,relatime,vers=4.0,rsize=131072,wsize=131072,namlen=255,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=192.168.50.10,local_lock=none,addr=192.168.50.11)
+</pre>
+
+Another way to check this has worked, is by using the df command:
+
+
+<pre>
+$ df -h
+Filesystem                            Size  Used Avail Use% Mounted on
+/dev/mapper/centos_puppetmaster-root   38G  4.7G   33G  13% /
+devtmpfs                              487M     0  487M   0% /dev
+tmpfs                                 497M   80K  497M   1% /dev/shm
+tmpfs                                 497M  6.9M  490M   2% /run
+tmpfs                                 497M     0  497M   0% /sys/fs/cgroup
+/dev/sda1                             497M  125M  373M  26% /boot
+none                                  224G  135G   89G  61% /vagrant
+<strong>The-Server:/nfs/Shared-Folder       38G  3.9G   34G  11% /nfs/The-Server/Shared-Folder
+</strong>
+</pre>
+
+
+
+Now, lets navigate into this folder and see what it contains:
+
+<pre>
+$ cd /nfs/The-Server/Shared-Folder
+$ ls -l
+total 0
+drwxr-xr-x. 2 root root 26 Oct 24 20:14 subfolder
+-rw-r--r--. 1 root root  0 Oct 24 20:14 testfile1.txt
+$ tree
+.
+├── subfolder
+│   └── testfile2.txt
+└── testfile1.txt
+
+1 directory, 2 files
+
+</pre>
+
+
+As you can see, when you access the mount-point, you actually end up accessing the contents of The-Server's Shared-Folder.
+
+However the above mounting isn't persistant, i.e. it won't survive a reboot. In the next article We'll cover how to make it persistent by setting up automounting during machine's boot up.
+
+
+
+
+<h3>Configuring the The-Client machine to access the CIFS Shared-Folder</h3>
+
+Like nfs, we first create a mountpoint:
+
+<pre>
+$ mkdir -p /cifs/The-Server/Shared-Folder
+</pre>
+
+As before, we create a meaningful folder structure, to make things easier to track.
+
+Now we use the mount command again, but this time it looks like this:
+
+
+<pre>
+$ mount -t cifs -o user=vagrant,password=admin <mark>//</mark>The-Server/Shared-Folder /cifs/The-Server/Shared-Folder
+</pre>
+
+Note we must use this <code>//</code> syntax, otherwise it won't work. Also we don't need to know of the remote folder's fullpath, just the folder name itself is required.
+
+
+We can now confirm that this has worked using the mount command:
+
+
+<pre>
+$ mount | grep cifs
+//The-Server/Shared-Folder on /cifs/The-Server/Shared-Folder type cifs (rw,relatime,vers=1.0,cache=strict,username=vagrant,domain=THE-SERVER,uid=0,noforceuid,gid=0,noforcegid,addr=192.168.50.11,unix,posixpaths,serverino,acl,rsize=1048576,wsize=65536,actimeo=1)
+</pre>
+
+You can also check with the df command:
+
+<pre>
+$ df -h
+Filesystem                            Size  Used Avail Use% Mounted on
+/dev/mapper/centos_puppetmaster-root   38G  4.7G   33G  13% /
+devtmpfs                              487M     0  487M   0% /dev
+tmpfs                                 497M   80K  497M   1% /dev/shm
+tmpfs                                 497M  6.9M  490M   2% /run
+tmpfs                                 497M     0  497M   0% /sys/fs/cgroup
+/dev/sda1                             497M  125M  373M  26% /boot
+none                                  224G  135G   89G  61% /vagrant
+The-Server:/nfs/Shared-Folder       38G  3.9G   34G  11% /nfs/The-Server/Shared-Folder
+<strong>//The-Server/Shared-Folder          38G  3.9G   34G  11% /cifs/The-Server/Shared-Folder</strong>
+</pre>
+
+
+Now let's go into the folder and see what it contains:
+
+<pre>
+$ cd /cifs/The-Server/Shared-Folder
+$ ls -l
+total 0
+-rwxrwxrwx. 1 root root 0 Oct 24 22:31 hello-world-cifs.txt
+drwxrwxrwx. 2 root root 0 Oct 24 22:31 subfolder
+$ tree
+.
+├── hello-world-cifs.txt
+└── subfolder
+    └── another-testfile.txt
+
+1 directory, 2 files
+</pre>
+
+However the above mounting isn't persistent, i.e. it won't survive a reboot. We'll cover how to make it persisting by setting up automounting during machine boot up.
