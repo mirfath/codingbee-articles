@@ -1,0 +1,8 @@
+To view a list of all branches do:
+
+
+<pre>
+git branch -a
+</pre>
+
+the one that has an asterix next to it is the one that is currently checked out.
