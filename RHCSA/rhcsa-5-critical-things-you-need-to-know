@@ -1,0 +1,13 @@
+There are a few things that can really catch you out in your day to day work, if you are new to RedHat:
+
+
+<ol>
+	<li>Regain root access - If you forget what the root password is then you would really struggle do anything.</li>
+	<li>Fix Grub2 problems</li>
+	<li>Fix start up problems, e.g. corrupt /etc/fstab</li>
+	<li>Resolve network access issues</li>
+	<li>Set up yum repos</li>
+	<li>Using built-in help info effectively</li>
+	<li>Everything must survive a reboot</li>
+
+</ol>

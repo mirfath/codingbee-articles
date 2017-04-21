@@ -1,0 +1,50 @@
+interactive shell - This is a shell sessions used for running commands interactively via the command line.
+
+login shell - This is a shell sessions used running a shell script inside it.
+
+When
+
+in the home directory you will find the following files:
+
+
+<pre>
+/etc/profile
+       The systemwide initialization file, executed for login shells
+~/.bash_profile
+       The personal initialization file, executed for login shells
+~/.bashrc
+       The individual per-interactive-shell startup file
+~/.bash_logout
+       The individual login shell cleanup file, executed when a login shell exits
+
+</pre>
+
+
+
+https://www.google.co.uk/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#safe=off&q=interactive+login+shell
+
+All the following let's you switch user, and switch into a login shell:
+
+<ul>
+	<li><code>su - {username}</code></li>
+	<li><code>su -l {username}</code></li>
+	<li><code>su --login {username}</code></li>
+</ul>
+
+
+Note: you can omit {username}, in which case the "su" command will use the default username, which is "root".
+
+
+If you want to su into an interactive shell, you do:
+
+
+<pre>
+$ su {username}
+</pre>
+
+Once again, you can omit {username} to imply the root user.
+
+In most cases you would log in using login shells.
+
+
+http://stackoverflow.com/questions/415403/whats-the-difference-between-bashrc-bash-profile-and-environment
