@@ -1,0 +1,223 @@
+Need to watch LA video again.
+There's basically 2 ways to ifcfg files. First you way is to do it manually via vim, as we saw earlier. The second way is to do it via Network Manager's collection of gui/cli/tui tools.
+
+
+<ul>
+	<li>gui gnome interface - changes you make here gets passed to the network service, which in turn applies the changes to the various config files</li>
+	<li>directly editing the config files using vim - note you will need to user the ifdown and ifup commands to load in the changes. Therefore this approach cannot be done through a putty/ssh connection because your session could terminate as soon as you use the ifdown command, and preventing you from using the ifup command.</li>
+	<li>nmcli command - </li>
+	<li>nmtui -</li>
+</ul>
+
+
+
+Alternatively If you want to reset your network settings back to dhcp, then you can do it via the gui gnome interface or use the following command:
+
+
+<pre>
+$ dhclient
+dhclient(9142) is already running - exiting.
+
+This version of ISC DHCP is based on the release available
+on ftp.isc.org.  Features have been added and other changes
+have been made to the base software release in order to make
+it work better with this distribution.
+
+Please report for this software via the CentOS Bugs Database:
+    http://bugs.centos.org/
+
+exiting.
+
+
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+Network Manager is a service and a set of gui/tui/cli utilites are designed to make it easier to configure your network configurations and then loading them in. The NetworkManager service acts as a wrapper around the network server.
+
+See also:
+
+https://www.centos.org/forums/viewtopic.php?f=50&t=47598
+
+
+
+Tip: nmcli commands can get quite long and difficult to remember, but luckily you can use the tab+tab autocomplete feature to make it much easier to use.
+
+
+
+
+nmcli lets you manage your connections from the command line.
+
+
+
+
+<pre>
+$ nmcli device status
+DEVICE  TYPE      STATE      CONNECTION
+enp0s3  ethernet  connected  System enp0s3
+enp0s8  ethernet  unmanaged  --
+lo      loopback  unmanaged  --
+</pre>
+
+Note: here enp0s8 is not managed by NM, that's because:
+
+<pre>
+$ cat /etc/sysconfig/network-scripts/ifcfg-enp0s8 | grep NM_CONTROLLED
+NM_CONTROLLED=no
+</pre>
+
+
+Here are the connection (config files) that NM is actively using
+
+<pre>
+$ nmcli connection show
+NAME           UUID                                  TYPE            DEVICE
+enp0s8         7607287c-31fd-4cb3-b663-a4e4120ef265  802-3-ethernet  --
+System enp0s3  ad2de184-098f-4eb8-92af-3e6c086f1186  802-3-ethernet  enp0s3
+</pre>
+
+Here, the enp0s3 device is using the connection called "System enp0s3", which corresponds to:
+
+<pre>
+$ cat /etc/sysconfig/network-scripts/ifcfg-enp0s3 | grep NAME
+NAME="System enp0s3"
+</pre>
+
+To create a new connection, we do:
+
+
+<pre>
+
+$ nmcli connection add con-name "CustCon" ifname enp0s3 type ethernet autoconnect no
+Connection 'CustCon' (4088f445-74b7-4f75-a8c1-513d13392ff8) successfully added.
+</pre>
+
+Running this command ended up creating the following new connection:
+
+<pre>
+$ ls -l /etc/sysconfig/network-scripts/ifcfg-CustCon
+-rw-r--r--. 1 root root 278 Oct  3 18:58 /etc/sysconfig/network-scripts/ifcfg-CustCon
+</pre>
+
+The contents of this connedction file is:
+
+<pre>
+$ cat ifcfg-CustCon
+TYPE=Ethernet
+BOOTPROTO=dhcp
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+NAME=CustCon
+UUID=991d8f70-7f92-481e-9202-c7afe5a434c0
+DEVICE=enp0s3
+ONBOOT=no
+
+</pre>
+
+As you can see, you can have more than one connection per interface and switch between them.
+
+Next we can see the available connections:
+
+<pre>
+$ nmcli connection show
+NAME           UUID                                  TYPE            DEVICE
+CustCon        4088f445-74b7-4f75-a8c1-513d13392ff8  802-3-ethernet  --
+enp0s8         7607287c-31fd-4cb3-b663-a4e4120ef265  802-3-ethernet  --
+System enp0s3  ad2de184-098f-4eb8-92af-3e6c086f1186  802-3-ethernet  enp0s3
+</pre>
+
+As you can see, our new connection is not attached to a device, i.e it is not currently being used.
+
+To switch between connections, you do:
+
+<pre>
+$ nmcli connection down System\ enp0s3
+Connection 'System enp0s3' successfully deactivated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/5)
+</pre>
+
+This brings down the network session:
+
+<pre>
+$ ip addr show enp0s3
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 08:00:27:d4:f9:99 brd ff:ff:ff:ff:ff:ff
+$ nmcli device status
+DEVICE  TYPE      STATE         CONNECTION
+enp0s3  ethernet  disconnected  --
+enp0s8  ethernet  unmanaged     --
+lo      loopback  unmanaged     --
+
+</pre>
+
+Next we bring up the network, but this time with the new connection:
+<pre>
+$ nmcli connection up CustCon
+Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/4)
+
+</pre>
+
+Now we can check that our new connection is now active:
+
+<pre>
+$ nmcli connection show
+NAME           UUID                                  TYPE            DEVICE
+enp0s8         7607287c-31fd-4cb3-b663-a4e4120ef265  802-3-ethernet  --
+System enp0s3  ad2de184-098f-4eb8-92af-3e6c086f1186  802-3-ethernet  --
+CustCon        991d8f70-7f92-481e-9202-c7afe5a434c0  802-3-ethernet  enp0s3
+enp0s3-static  0d936343-5c8e-4545-9174-f295b6c9ae86  802-3-ethernet  --
+
+</pre>
+
+The main purpose of this approach is that it lets you try/use/experiment various connection settings without losing the original.
+
+Here's the nmcli help info:
+
+
+<pre>
+$ nmcli -h
+Usage: nmcli [OPTIONS] OBJECT { COMMAND | help }
+
+OPTIONS
+  -t[erse]                                   terse output
+  -p[retty]                                  pretty output
+  -m[ode] tabular|multiline                  output mode
+  -f[ields] <field1,field2,...>|all|common   specify fields to output
+  -e[scape] yes|no                           escape columns separators in values
+  -n[ocheck]                                 don't check nmcli and NetworkManager versions
+  -a[sk]                                     ask for missing parameters
+  -w[ait] <seconds>                          set timeout waiting for finishing operations
+  -v[ersion]                                 show program version
+  -h[elp]                                    print this help
+
+OBJECT
+  g[eneral]       NetworkManager's general status and operations
+  n[etworking]    overall networking control
+  r[adio]         NetworkManager radio switches
+  c[onnection]    NetworkManager's connections
+  d[evice]        devices managed by NetworkManager
+  a[gent]         NetworkManager secret agent or polkit agent
+</pre>
+
+As you can see, nmcli is actually a high-level command that is used to access a bunch of subcommands (aka objects).
+
+
+<h2>
+Network Manager Terminal User Interface nmtui
+</h2>
+This tool is another way of configuring your network settings. This tool is similar to what the Network Manager gnome gui does. 
