@@ -1,0 +1,15 @@
+On Redhat or CentOS:
+
+<pre>yum install git</pre>
+
+
+On windows you need to go here:
+
+http://git-scm.com/download/win
+
+alternatively you can install github for windows which comes prepackaged with git:
+
+https://windows.github.com/
+
+Also see:
+http://git-scm.com/download/linux

@@ -1,0 +1,7 @@
+temporary save files then do git pull
+
+git stash   # car park currently changed files.
+
+git pull
+
+git stash pop   # overwrite pulled files. 
