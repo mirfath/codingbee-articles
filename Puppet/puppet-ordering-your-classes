@@ -1,0 +1,15 @@
+this is common, for example, sometimes once class installs dbg software, and then the next class creates the db istself.
+
+
+<pre>
+class mainclass {
+  include class1
+  include class2
+  include class3
+  include class4
+
+  Class['class1']
+  -> Class['class2']
+  -> Class['class3']
+  -> Class['class4']
+} </pre>

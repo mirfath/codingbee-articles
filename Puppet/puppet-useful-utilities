@@ -1,0 +1,3 @@
+puppet modulesync: https://github.com/voxpupuli/modulesync
+
+puppet blacksmith: https://github.com/voxpupuli/puppet-blacksmith

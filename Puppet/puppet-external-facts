@@ -1,0 +1,47 @@
+External facts is a great way to apply (arbitary) meta data to a vm during the vm provisioning stage (e.g. using vsphere/openstack/aws....etc).
+
+These meta data can then be used by puppet to determine what needs to be added into the catalog.
+
+it's really simple to create an external fact:
+
+step 1:
+
+On the agent, create the following directory (if it doesn't already exist):
+
+<pre>
+$ mkdir -p /etc/facter/facts.d
+</pre>
+
+In this directory, create a shell script, of any name. In this example I created the following script:
+
+<pre>
+$ ls -l /etc/facter/facts.d
+total 4
+-rwxrwxrwx. 1 root root 65 Sep 18 13:11 external-facts.sh
+$ cat /etc/facter/facts.d/external-facts.sh
+#!/bin/bash
+
+echo "hostgroup=dev"
+echo "environment=development"
+
+</pre>
+
+Then make the script executable:
+
+<pre>
+$ chmod u+x /etc/facter/facts.d/external-facts.sh
+</pre>
+
+You will now see that these key/value pairs are now available via facter:
+
+
+<pre>
+$ facter hostgroup
+dev
+$ facter environment
+development
+</pre>
+
+
+
+Note: An <a href="http://codingbee.net/tutorials/puppet/puppet-format-of-the-enc-output/#The_8220parameters8221_key">External Node Classifier, such as foreman can also set metadata</a>. But external facts is probably a better approach, becuase data gets stored on the agents, and mcollective can make use of facter data as well.

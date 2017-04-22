@@ -1,0 +1,8 @@
+Foreman is a web based puppet management that has 3 core functions:
+
+
+<ul>
+	<li>provision VMs</li>
+	<li>ENC for Puppet</li>
+	<li>reporting</li>
+</ul>
