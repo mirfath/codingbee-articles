@@ -1,0 +1,168 @@
+In CentOS 7 it's possible to configure to separate network interfaces to work together. Combining two network interfaces like this is referred to as 'Link Aggregation'. Link aggregations has the following benefits:
+<ul>
+ 	<li>combined bandwith - This means improved performance, better performance</li>
+ 	<li>load balancing - So that one interface doesn't do all the work while the other is idle</li>
+ 	<li>fault tolerance - if one interface suffers a hardware failure then the other interface can take over</li>
+</ul>
+&nbsp;
+
+There are 2 methods for setting up link aggregation, they are called:
+<ul>
+ 	<li>bonding</li>
+ 	<li>teaming</li>
+</ul>
+The 'teaming' method is new in RHEL 7 and has more features compared to the bonding method. Therefore in this guide we'll focus on the teaming method.
+
+A team based link aggregation has 4 different operating modes:
+<ul>
+ 	<li>broadcast</li>
+ 	<li>roundrobin</li>
+ 	<li>activebackup</li>
+ 	<li>loadbalance</li>
+ 	<li>lacp</li>
+</ul>
+Note you can view this list by running:
+<pre>$ man 5 teamd.conf</pre>
+&nbsp;
+
+&nbsp;
+
+You can setup Link aggregation via any of the following methods:
+<ul>
+ 	<li>nmcli command</li>
+ 	<li>NetworkManager gui</li>
+ 	<li>nmtui</li>
+ 	<li>manually editing the various config files</li>
+</ul>
+&nbsp;
+
+&nbsp;
+
+In this guide we'll show you how to set up Link Aggregation via the teaming method, using nmcli.
+
+<pre>
+$  nmcli connection add type team con-name CodingBeeTeam0 ifname CodingBeeTeam0 config '{"runner": {"name":"activebackup"}}'
+Connection 'CodingBeeTeam0' (7a12239f-ca6f-4347-b9db-86122bb22078) successfully added.
+</pre>
+
+
+Behind the scenes this ends up creating the following file with the content:
+<pre>$  cat /etc/sysconfig/network-scripts/ifcfg-CodingBeeTeam0
+DEVICE=CodingBeeTeam0
+TEAM_CONFIG="{\"runner\": {\"name\":\"activebackup\"}}"
+DEVICETYPE=Team
+BOOTPROTO=dhcp
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+NAME=CodingBeeTeam0
+UUID=7a12239f-ca6f-4347-b9db-86122bb22078
+ONBOOT=yes
+</pre>
+&nbsp;
+
+This ends up creating the following connection:
+
+
+<pre>
+$  ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 52:54:00:d8:71:80 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic eth0
+       valid_lft 82995sec preferred_lft 82995sec
+    inet6 fe80::5054:ff:fed8:7180/64 scope link
+       valid_lft forever preferred_lft forever
+3: virbr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN
+    link/ether 52:54:00:38:49:3d brd ff:ff:ff:ff:ff:ff
+    inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
+       valid_lft forever preferred_lft forever
+4: virbr0-nic: <BROADCAST,MULTICAST> mtu 1500 qdisc pfifo_fast master virbr0 state DOWN qlen 500
+    link/ether 52:54:00:38:49:3d brd ff:ff:ff:ff:ff:ff
+5: nm-team: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN
+    link/ether f6:fe:47:cf:0d:a2 brd ff:ff:ff:ff:ff:ff
+<strong>6: CodingBeeTeam0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN
+    link/ether 3a:88:c8:68:f0:b3 brd ff:ff:ff:ff:ff:ff</strong>
+</pre>
+
+Now we assign an IP address to this connection:
+
+<pre>
+$  nmcli connection modify CodingBeeTeam0 ipv4.addresses '192.168.2.50/24'
+</pre>
+
+This ends up adding the following line to the the file:
+
+<pre>
+$  cat /etc/sysconfig/network-scripts/ifcfg-CodingBeeTeam0
+DEVICE=CodingBeeTeam0
+TEAM_CONFIG="{\"runner\": {\"name\":\"activebackup\"}}"
+DEVICETYPE=Team
+BOOTPROTO=dhcp
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+NAME=CodingBeeTeam0
+UUID=7a12239f-ca6f-4347-b9db-86122bb22078
+ONBOOT=yes
+<strong>IPADDR=192.168.2.50
+PREFIX=24</strong>
+PEERDNS=yes
+PEERROUTES=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+</pre>
+
+
+Since we have manually assigned an IP address, it means that before using this connection we need to first disable dhcp for this connection:
+
+<pre>
+$ nmcli connection modify CodingBeeTeam0 ipv4.method manual
+</pre>
+
+This ends up changing the following line:
+
+<pre>
+$ cat /etc/sysconfig/network-scripts/ifcfg-CodingBeeTeam0
+DEVICE=CodingBeeTeam0
+TEAM_CONFIG="{\"runner\": {\"name\":\"activebackup\"}}"
+DEVICETYPE=Team
+<strong>BOOTPROTO=none</strong>
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+NAME=CodingBeeTeam0
+UUID=7a12239f-ca6f-4347-b9db-86122bb22078
+ONBOOT=yes
+IPADDR=192.168.2.50
+PREFIX=24
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+
+</pre>
+
+
+
+&nbsp;
+
+&nbsp;
+<h2>Useful resources</h2>
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Networking_Guide/ch-Configure_Network_Teaming.html

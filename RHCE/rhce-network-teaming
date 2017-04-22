@@ -1,0 +1,21 @@
+<strong>Link Aggregation</strong>
+
+In RHEL/CentOS it is possible to combine two (physical or virtual) network interfaces so that they act as one. Having 2 network interfaces acting as one is referred to as <strong>link aggregation</strong>. There's 2 advantages to setting up link aggregations:
+<ul>
+ 	<li>Improved redundancy - i.e. one interface is active, and the other is on standby. if the active interface fails, then then standby interface takes over.</li>
+ 	<li>Improved performance - i.e. having two interface acting as one will double the bandwidth.</li>
+</ul>
+&nbsp;
+
+There are 2 ways to setup two interfaces to act as one:
+<ul>
+ 	<li>bonding</li>
+ 	<li>teaming</li>
+</ul>
+Bonding is the old approach that has been around for a long while, whereas the Teaming is the newer approach. In this article we'll take a look at how to setup link aggregation via the teaming approach.
+
+Teaming can be configured using Network Manager. That is, we can setup teaming using the nmcli, nmtui, or the graphical network manager tool.
+<h2>Setup teaming using nmcli</h2>
+&nbsp;
+<pre>$ nmcli con add type team con-name codingbee</pre>
+Here we created a new resource called codingbee

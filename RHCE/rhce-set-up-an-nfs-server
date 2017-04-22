@@ -1,0 +1,256 @@
+If you have directories on your machine that you want to share out to other machines so that they can access these folders as well (via a network connection), then one way to to do is by setting up nfs on your machine.
+
+
+To do this, you first need to ensure the following package is installed:
+
+<pre>
+$ yum install nfs-utils
+</pre>
+
+
+Next identify the directories you want to share, or create them if they don't exist them. I am going to create the following folder that I want to share:
+
+<pre>
+$ mkdir -p /nfs/Shared-Folder
+$ chmod -R 777 /nfs/Shared-Folder
+</pre>
+
+Notice we have created a meaningful folder name to make it obvious what folder we are sharing, and with what technology (i.e. nfs)
+
+Now lets create some dummy content in this directory, which will get shared:
+
+
+<pre>
+$ touch /nfs/Shared-Folder/testfile1.txt
+$ mkdir /nfs/Shared-Folder/subfolder
+$ touch /nfs/Shared-Folder/subfolder/testfile2.txt
+$ tree /nfs/Shared-Folder
+/nfs/Shared-Folder
+├── subfolder
+│   └── testfile2.txt
+└── testfile1.txt
+
+1 directory, 2 files
+</pre>
+
+Now to share this folder, you need to create/open the the following nfs config file:
+
+<pre>
+$ vim /etc/exports
+</pre>
+
+Note this file might not exist, or does exist but is empty.
+
+In this file, you need to add an entry for each folder that you want to share. Each entry is made up 3 fields. For more info, checkout:
+
+<pre>
+$ whatis exports
+exports (5)          - NFS server export table
+$ man 5 exports
+</pre>
+
+
+In this example I inserted:
+
+
+<pre>
+[root@puppetagent01 ~]# cat /etc/exports
+/nfs/Shared-Folder      -rw        *
+</pre>
+
+<strong>First field</strong>: we specify which local folder we want to share.
+<strong>Second field</strong>: Here we specify the mount options. In this example we want remote servers to have read-write access to this server.
+<strong>Third field</strong>: Here we specify remote server ip numbers that can access this shared folder. Here we stated asterisk to indicate that all servers in the local network can access this. Note, nfs is only able to share folders within a private local network, this means you can't share a folder over the internet even if you wanted to. If wanted to do that then you need to use samba instead of nfs.
+
+
+Now start and enable the nfs-server service:
+
+<pre>
+$ systemctl enable nfs-server
+$ systemctl restart nfs-server
+</pre>
+
+Now back on the nfs client server, we check what :
+
+<pre>
+[root@puppetmaster ~]# showmount -e puppetagent01
+Export list for puppetagent01:
+/data *
+</pre>
+
+
+Now let's manually mount this folder on a remote server. To do this, we first create our mount point:
+
+<pre>
+[root@puppetmaster ~]# mkdir /tmp/mount-point
+[root@puppetmaster ~]# tree /tmp/mount-point
+/tmp/mount-point
+
+0 directories, 0 files
+</pre>
+
+
+Then we use the mount command to mount the shared folder:
+
+
+<pre>
+[root@puppetmaster ~]# mount puppetagent01:/data /tmp/mount-point/
+</pre>
+
+This doesn't give a success message, which is a good sign.
+
+Now let's use the df command to check this has worked:
+
+<pre>
+$ df -h
+Filesystem                            Size  Used Avail Use% Mounted on
+/dev/mapper/centos_puppetmaster-root   38G  4.4G   34G  12% /
+devtmpfs                              488M     0  488M   0% /dev
+tmpfs                                 497M   80K  497M   1% /dev/shm
+tmpfs                                 497M   14M  484M   3% /run
+tmpfs                                 497M     0  497M   0% /sys/fs/cgroup
+/dev/sda1                             497M  149M  349M  30% /boot
+none                                  224G  158G   66G  71% /vagrant
+//192.168.50.11/vpublicshare           37G  1.4G   34G   4% /tmp/cifs_share
+<strong>puppetagent01:/data                    37G  1.4G   34G   4% /tmp/mount-point</strong>
+
+</pre>
+
+
+This output doesn't indicate that this is an nfs mount, to check the mount type we can instead use the mount command:
+
+<pre>
+$ mount | grep "mount-point"
+localhost:/data on /tmp/mount-point type <mark>nfs4</mark> (rw,relatime,vers=4.0,rsize=131072,wsize=131072,namlen=255,hard,proto=tcp6,port=0,timeo=600,retrans=2,sec=sys,clientaddr=::1,local_lock=none,addr=::1)
+</pre>
+
+
+
+
+
+
+
+Now if you want, you can unmount this shared directory like this:
+
+<pre>
+$ umount /tmp/mount-point/
+$ tree /tmp/mount-point
+/tmp/mount-point
+
+0 directories, 0 files
+</pre>
+
+
+<h2>Setting up automount</h2>
+So far we have mounted the folder manually, let's now automount this. In this situation, we will use /tmp/mount-point/ as a folder that hosts other mount points.
+
+So let's first add the following entry to the /etc/auto.master file:
+
+<pre>
+$ cat /etc/auto.master | grep auto.mount-point
+/tmp/mount-point     /etc/auto.mount-point
+</pre>
+
+Now lets create the new auto.mount-mount file and add the following line to it:
+
+<pre>
+$ cat /etc/auto.mount-point
+sharedfolder1      -rw        localhost:/data
+</pre>
+
+
+Based on the above two config files, it means that the new mount point's location will be at:
+
+<pre>
+/tmp/mount-point/sharedfolder1
+</pre>
+
+
+Now let's go to the mount points's hosting folder (which in this case is /tmp/mount-point) and see what it contains:
+
+<pre>
+ls -l /tmp/mount-point
+total 0
+$
+$ cd /tmp/mount-point/sharedfolder1
+-bash: cd: /tmp/mount-point/sharedfolder1: No such file or directory
+</pre>
+
+
+That's expected since we don't have the shared folder mounted yet:
+
+
+<pre>
+$ mount | grep sharedfolder1
+$
+</pre>
+
+To fix this we need to restart the autofs service in order to load in the new config data:
+
+<pre>
+$ systemctl restart autofs
+</pre>
+
+Now let's retry:
+
+<pre>
+$ ls -l /tmp/mount-point
+total 0
+$
+</pre>
+
+Still no luck, that's because this service is called automounting, which means it will automount when you actually try to cd into the mountpoint itself, so let's try that:
+
+
+<pre>
+[root@localhost /]# cd /tmp/mount-point/sharedfolder1
+[root@localhost sharedfolder1]# tree
+.
+├── subfolder
+│   └── testfile2.txt
+└── testfile1.txt
+
+1 directory, 2 files
+
+</pre>
+
+Success!
+
+Now if we cd back out of the mount point, and check if that mount point still exist:
+
+
+<pre>
+[root@localhost sharedfolder1]# cd /
+[root@localhost /]# ls -l /tmp/mount-point
+total 0
+drwxr-xr-x. 3 root root 42 Apr 11 00:26 sharedfolder1
+[root@localhost /]#
+
+</pre>
+
+Now you can see, that the mount point is still active. That's because if a automounted mount points isn't being used, then it stays mounted for up to 5 minutes (300 seconds) before automatically getting unmounted again. This default 5 mins get be changed, by editing the main autofs config file, in particular this entry:
+
+<pre>
+$ cat /etc/autofs.conf | grep "^timeout"
+timeout = 300
+</pre>
+
+
+ Here's another check that our mount point is currently active:
+
+
+<pre>$ mount | grep sharedfolder1
+/dev/mapper/centos-root on /tmp/mount-point/sharedfolder1 type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
+</pre>
+
+
+Some things to keep in mind:
+
+<ul>
+	<li>any automounted mount points are unmounted if you stop the autofs service</li>
+	<li>You can manually create the mount points. But this unnecessary becuase autofs will create the mount point for you. In fact if you do manually create it, then autofs will assume full control of it, once automounting happens and will delete this folder when you unmount, or stop the autofs service. Hence no point manually creating the mount point folder.</li>
+	<li>You don't need to manually create the mount point's hosting folder, autofs can create that for you (but only when you try cd into the hosting folder), however if you do let autofs create it for you, then it will also delete this folder when you stop the autofs service. But if you create it manually, then the folder will state intact after stopping the autofs service. Hence it might be a good idea to only create this folder manually.</li>
+</ul>
+
+
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Storage_Administration_Guide/nfs-serverconfig.html

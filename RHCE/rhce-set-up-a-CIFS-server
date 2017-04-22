@@ -1,0 +1,144 @@
+CIFS is a system that's designed to let you share folders over the internet between machines. It is cross platform, i.e. you can share a Microsoft windows folder with a Linux machine.
+
+
+First you need to install:
+
+<pre>
+$ yum install -y samba
+</pre>
+
+This package installs a few dependent rpms. One of which is the samba-common rpm. This rpm in turn installs the following config file:
+
+
+<pre>
+$ cat /etc/samba/smb.conf
+# This is the main Samba configuration file. You should read the
+# smb.conf(5) manual page in order to understand the options listed
+# here. Samba has a huge number of configurable options (perhaps too
+# many!) most of which are not shown in this example
+#
+# For a step to step guide on installing, configuring and using samba,
+# read the Samba-HOWTO-Collection. This may be obtained from:
+#  http://www.samba.org/samba/docs/Samba-HOWTO-Collection.pdf
+#
+# Many working examples of smb.conf files can be found in the
+# Samba-Guide which is generated daily and can be downloaded from:
+#  http://www.samba.org/samba/docs/Samba-Guide.pdf
+#
+# Any line which starts with a ; (semi-colon) or a # (hash)
+# is a comment and is ignored. In this example we will use a #
+# for commentry and a ; for parts of the config file that you
+# may wish to enable
+#
+# NOTE: Whenever you modify this file you should run the command "testparm"
+# to check that you have not made any basic syntactic errors.
+#
+.
+.
+.
+</pre>
+
+
+At the very end of your <code>/etc/samba/smb.conf</code>, append the following:
+
+
+<pre>
+[{folder_name}]
+path = /path/to/{folder_name}
+available = yes
+valid users = {user_name}
+read only = no
+browseable = yes
+public = yes
+writable = yes
+</pre>
+
+In the world of CIFS, we use existing machine login user accounts, as a means to authenticate yourself. In our example, we will use an existing account called "vagrant":
+
+<pre>
+$ cat /etc/passwd | grep vagrant
+vagrant:x:1000:1000:vagrant:/home/vagrant:/bin/bash
+</pre>
+
+Let's say we want to share a folder called "/CIFS/Shared-Folder". Therefore in our scenario we will end up appending the following:
+
+<pre>
+[Shared-Folder]
+path = /CIFS/Shared-Folder
+available = yes
+valid users = vagrant
+read only = no
+browseable = yes
+public = yes
+writable = yes
+</pre>
+
+
+Next create the folder you want to share. In my case I create the following folder.
+
+<pre>
+$ mkdir -p /CIFS/Shared-Folder
+$ chmod 777 /CIFS/Shared-Folder
+</pre>
+
+Note: The "vagrant" user needs to have the appropriate permission for this folder.
+
+
+When using samba, we have to create a different password for our Linux account, which we do like this:
+
+<pre>
+$ smbpasswd -a vagrant
+New SMB password:
+Retype new SMB password:
+Added user vagrant.
+</pre>
+
+
+Next we enable + restart the service:
+
+
+<pre>
+$ systemctl enable smb
+ln -s '/usr/lib/systemd/system/smb.service' '/etc/systemd/system/multi-user.target.wants/smb.service'
+$ systemctl start smb
+</pre>
+
+Now from another server that has the smblcient installed, check if it can see the new share:
+
+
+<pre>
+$ smbclient -L puppetagent01 --user vagrant
+Enter vagrant's password:
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 4.1.12]
+
+        Sharename       Type      Comment
+        ---------       ----      -------
+        Shared-Folder   Disk
+        IPC$            IPC       IPC Service (Samba Server Version 4.1.12)
+        vagrant         Disk      Home Directories
+Domain=[MYGROUP] OS=[Unix] Server=[Samba 4.1.12]
+
+        Server               Comment
+        ---------            -------
+
+        Workgroup            Master
+        ---------            -------
+</pre>
+
+
+Success, you can access the CIFS folder.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://rbgeek.wordpress.com/2012/05/25/how-to-install-samba-server-on-centos-6/
