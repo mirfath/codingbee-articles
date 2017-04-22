@@ -1,0 +1,17 @@
+After test has ended, do:
+
+&nbsp;
+
+$ vagrant global-status
+
+&nbsp;
+
+&nbsp;
+
+this will list all the vagrant machines created by beaker. Then use the id, to destroy these vagrant vms:
+
+&nbsp;
+
+$ vagrant destroy {id}
+
+&nbsp;
