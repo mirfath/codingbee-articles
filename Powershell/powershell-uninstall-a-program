@@ -1,0 +1,36 @@
+Using the gui, you can uninstall a program by going to control-panel -&gt; add/remove program.
+
+You can also do this via powershell:
+
+http://stackoverflow.com/questions/113542/how-can-i-uninstall-an-application-using-powershell
+
+http://blogs.technet.com/b/heyscriptingguy/archive/2011/12/14/use-powershell-to-find-and-uninstall-software.aspx
+
+&nbsp;
+
+&nbsp;
+
+Note: the above is quite slow, here is a faster way:
+
+&nbsp;
+
+function Uninstall ($featureName)
+{
+$uninstall32 = gci "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" | foreach { gp $_.PSPath } | ? { $_ -match $featureName } | select UninstallString
+$uninstall64 = gci "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" | foreach { gp $_.PSPath } | ? { $_ -match $featureName } | select UninstallString
+
+if ($uninstall64) {
+$uninstall64 = $uninstall64.UninstallString -Replace "msiexec.exe","" -Replace "/I","" -Replace "/X",""
+$uninstall64 = $uninstall64.Trim()
+Write "Uninstalling..."
+start-process "msiexec.exe" -arg "/X $uninstall64 /qb" -Wait}
+if ($uninstall32) {
+$uninstall32 = $uninstall32.UninstallString -Replace "msiexec.exe","" -Replace "/I","" -Replace "/X",""
+$uninstall32 = $uninstall32.Trim()
+Write "Uninstalling..."
+start-process "msiexec.exe" -arg "/X $uninstall32 /qb" -Wait}
+}
+
+&nbsp;
+
+Uninstall -featureName "{name of msi}"
