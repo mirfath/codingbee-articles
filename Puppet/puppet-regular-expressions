@@ -1,0 +1,21 @@
+https://docs.puppetlabs.com/puppet/latest/reference/lang_datatypes.html#regular-expressions
+
+&nbsp;
+
+&nbsp;
+
+In bash you encase regular expressions in double-quotes. However in puppet you encase them in forward slashes. I.e. this is wrong:
+
+&nbsp;
+
+"regex"
+
+&nbsp;
+
+but this is correct:
+
+&nbsp;
+
+/regex/
+
+This is the <a href="http://en.wikipedia.org/wiki/Regular_expression#Syntax">perl syntax of regex</a>
