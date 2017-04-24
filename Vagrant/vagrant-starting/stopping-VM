@@ -1,0 +1,7 @@
+to simulate a shutdow, do:
+
+<pre>vagrant halt machinename</pre>
+
+to Switch vm back on again, do:
+
+<pre>vagrant reloead machinename</pre>
