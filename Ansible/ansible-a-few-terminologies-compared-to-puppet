@@ -1,0 +1,7 @@
+<strong>Control Machine</strong>: This is equivalent to Puppet's PuppetMaster
+
+<strong>Managed Node</strong>: This is equivalent to Puppet's Puppet agents
+
+<strong>Playbooks</strong>: This is ansible's equivalent to a puppet's manifest file,
+
+&nbsp;

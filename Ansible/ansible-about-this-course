@@ -1,0 +1,59 @@
+<h2>What is Ansible</h2>
+Ansible can be thought of as general purpose tool for managing servers. This means that Ansible can be used as a:
+<ul>
+	<li>Server provisioning tool - build new vm, e.g. in aws. Ansible can also do orchestration, i.e. build+configure servers in a specific sequence. Ansible has a number of modules for communicating with aws, azure, google cloud, openstack,...etc.</li>
+	<li>Configuration Management tool - i.e. configure OS and middleware tier</li>
+	<li>Deployment tool - i.e. installing and configuring software that has been written in-house</li>
+</ul>
+&nbsp;
+
+Ansible has a controller-client type architecture, where you have one server (aka the controller) controlling lots of other servers (aka clients). However in ansible, you don't need to install any ansible specific software on the client's themselves. You only install ansible on the controller. I.e. it is an agentless architecture.
+
+The controller communicates with all the clients via standard ssh.
+
+&nbsp;
+
+Ansible playbooks are essentially 1 or more scripts. The puppet equivalent to playbooks is puppet manifests.
+
+You can extend your ansible capability using "ansible modules", similar to how you extend puppet using puppet modules.
+
+http://image.slidesharecdn.com/epam-symfony2-ansible-150221142047-conversion-gate01/95/deploying-symfony2-app-with-ansible-18-638.jpg?cb=1424528565
+
+In order for a client to be controlled by the Ansible server, it needs to have the following minimum requirements:
+- SSH daemon enabled (this is normally the case anyway)
+- python is installed
+
+&nbsp;
+<h2>Comparison with Puppet</h2>
+Key differences against puppet:
+<ul>
+	<li>No single master server. You can simply install ansible on any server and that can then act as the muster. In Puppet, that's not possible because the puppetmasters url is hardcoded into each puppet agent's puppet.conf file.</li>
+	<li>Orchestration is done via the "push" system rather than the "pull" system. I.e. you don't need to log into ansible client and then trigger a ansible run.</li>
+	<li>The code  in a playbook is executed in the order that they are specified. Where that is not the case with puppet, where if you want you can specify ordering using the before/require metaparameters</li>
+	<li>Puppet is based on ruby. However Ansible is based on python, and you can write python code right into your ansible code. Python comes with a huge amount of functions/libraries that you can utilise in your ansible code.</li>
+	<li>puppet code is written in it's own custom language, i.e. Domain specific  Language (DSL). However ansible code is written in yaml syntax.</li>
+</ul>
+&nbsp;
+<h2>Advantages of Ansible</h2>
+<ul>
+	<li>Easy to read syntax</li>
+	<li>It is a multi-purpose tool - it can do provisioning, environment orchestration, configuration management tool, deployment tool</li>
+	<li>You don't need to install or configure anything on the clients. The clients needs to have ssh, and a relatively recent version of python</li>
+	<li>Ansible pushed based - clients don't need to have any services running to periodically do an ansible run. Instead you trigger the run from the controller.</li>
+	<li>Easy to build multiple controllers, the clients are not configured to communicate with a particular controller. Hence when number of clients goes up to thousands, then you can quickly build new controllers to handle</li>
+	<li>can execute adhoc shell commands on the clients</li>
+	<li>builtin modules (puppet's equivalent of resource types). These modules behaves idempotently to bring a ensure a stage.</li>
+	<li></li>
+</ul>
+&nbsp;
+<h2>Disadvantages of Ansible</h2>
+<ul>
+	<li>Abstractions are kept to a minimum, e.g. for installing packages on rhel based OS, you need to use the yum's built-in module, whereas for ubuntu, you use apt's built-in module instead</li>
+</ul>
+&nbsp;
+
+&nbsp;
+
+See also:
+
+http://docs.ansible.com/ansible/

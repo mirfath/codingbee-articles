@@ -1,0 +1,33 @@
+Here's a simple playbook that set's up an apache webserver:
+<pre>
+[root@controller playbooks]# pwd
+/root/playbooks
+[root@controller playbooks]# cat httpd.yaml
+---
+- name: This sets up an httpd webserver
+  hosts: ansibleclient01.local
+  tasks:
+  - name: Install the httpd rpm
+    yum: name=httpd
+  - name: start the httpd service
+    service: name=httpd state=started
+  - name: Open port 80
+    firewalld: service=http permanent=true state=enabled
+  - name: start the firewalld service
+    service: name=firewalld state=restarted
+</pre>
+
+Here's a breakdown of what the aboout yaml syntax shows. At the top level is a single item list. This list item houses a hash with 3 key-value pairs. The first to key's values are of the type string. However the third key's (tasks) houses a list of 4 items. Each one of these list items contains a hash. Each of these hashes is made up of 2 key-value pairs.
+
+Now let's run this playbook:
+<pre>
+[root@controller playbooks]# pwd
+/root/playbooks
+[root@controller playbooks]# ls
+httpd.yaml
+$ ansible-playbook httpd.yml
+
+</pre>
+We can test if this has worked, by opening to http://ansibleclient01.local in your web browser.
+
+&nbsp;
