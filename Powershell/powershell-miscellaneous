@@ -1,0 +1,17 @@
+Every command in powershell, has a set of "common parameters" (i.e. options). This is indicated in all the help pages, in the syntax section...which alway ends with:
+
+[]
+
+This family of paramaters is made up of the following parameters:
+- Debug (db)
+- ErrorAction(ea)
+- ErrorVariable(ev)
+- OutVariable(ov)
+- OutBuffer(ob)
+- Verbose(vb)
+- WarningAction(wa)
+- WarningVariable(wv)
+
+For more info, check out:
+
+help about_CommonParameters # "help" is a function of get-help, and does the same thing.

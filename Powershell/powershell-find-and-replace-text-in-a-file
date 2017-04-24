@@ -1,0 +1,14 @@
+Special Chapter - find and replace text in a file
+
+Here is an example:
+
+
+$filescontent = Get-Content c:\path\to\file
+
+$filescontent -replace "foo", "bar" | Set-Content c:\path\to\file
+
+If you don't want to overwrite, then you can do:
+
+copy-item -path "c:\path\to\file" -destination "c:\path\to\orig-file"
+
+$filescontent -replace "foo", "bar" | Set-Content c:\path\to\file
